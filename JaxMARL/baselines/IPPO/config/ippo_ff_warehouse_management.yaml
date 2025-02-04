@@ -1,0 +1,26 @@
+"LR": 5e-4
+"NUM_ENVS": 1024  # Nombre d'environnements parallèles
+"NUM_STEPS": 128
+"TOTAL_TIMESTEPS": 1e10
+"UPDATE_EPOCHS": 4
+"NUM_MINIBATCHES": 4
+"GAMMA": 0.99
+"GAE_LAMBDA": 0.95
+"LEARNING_RATE": 3e-4  # Taux d'apprentissage
+"CLIP_EPS": 0.2
+"ENT_COEF": 0.01
+"VF_COEF": 0.5
+"MAX_GRAD_NORM": 0.5
+"ENV_NAME": "hanabi"
+"ENV_KWARGS": {}
+"ANNEAL_LR": False
+"NUM_AGENTS": 2  # Nombre d'agents dans l'environnement
+
+# WandB Params
+"WANDB_MODE": "disabled"
+"ENTITY": ""
+"PROJECT": ""
+
+"NUM_UPDATES": 10  # Nombre de mises à jour
+"EPSILON_CLIP": 0.2,  # Facteur PPO de clipping
+"ENTROPY_COEF": 0.01,  # Poids de l'entropie pour l'exploration
