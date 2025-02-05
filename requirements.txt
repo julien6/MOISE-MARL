@@ -1,1 +1,3 @@
 distrax
+pygame
+
