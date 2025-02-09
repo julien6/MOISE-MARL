@@ -1,4 +1,5 @@
 from enum import IntEnum
+import time
 import jax
 import jax.numpy as jnp
 import numpy as onp
@@ -79,7 +80,7 @@ class State:
 
 GRID_SIZE = 10
 VIEW_SCOPE = 2
-MAX_STEPS = 300
+MAX_STEPS = 50
 
 
 class WarehouseManagement(MultiAgentEnv):
@@ -126,6 +127,7 @@ class WarehouseManagement(MultiAgentEnv):
         - check_done
         - compute_reward
         """
+
         # Conversion du dictionnaire d'actions en tableau ordonné selon l'ordre des agents.
         # Cela permet d'avoir un tableau où l'élément d'indice i correspond à l'action de l'agent self.agents[i].
         actions_array = jnp.array([actions[agent]
@@ -166,8 +168,8 @@ class WarehouseManagement(MultiAgentEnv):
 
                 # Appliquer le déplacement uniquement si l'action est une action de mouvement (entre up et right).
                 # Sinon, la position reste inchangée.
-                new_pos = jax.lax.cond((action == Actions.up.value) | (action == Actions.left.value)
-                                       | (action == Actions.down.value) | (action == Actions.right.value),
+                new_pos = jax.lax.cond(jnp.squeeze((action == Actions.up.value) | (action == Actions.left.value)
+                                       | (action == Actions.down.value) | (action == Actions.right.value)),
                                        move_fn,
                                        lambda _: pos,
                                        operand=None)
@@ -331,7 +333,8 @@ class WarehouseManagement(MultiAgentEnv):
                                 direction_index = k % num_dirs
 
                                 # Récupérer le triplet de transformation à partir du tableau TRANSFORMS.
-                                transform_row = jnp.take(TRANSFORMS, transformation_index, axis=0)
+                                transform_row = jnp.take(
+                                    TRANSFORMS, transformation_index, axis=0)
                                 expected_cell = transform_row[0]
                                 new_agent_state = transform_row[1]
                                 deposit_value = transform_row[2]
@@ -339,30 +342,37 @@ class WarehouseManagement(MultiAgentEnv):
                                 direction = dirs[direction_index]
                                 candidate = pos + direction
                                 candidate = jnp.clip(candidate, a_min=jnp.array([0, 0]),
-                                                    a_max=jnp.array(state.grid.shape) - 1)
-                                cell_val = state.grid[candidate[0], candidate[1]]
+                                                     a_max=jnp.array(state.grid.shape) - 1)
+                                cell_val = state.grid[candidate[0],
+                                                      candidate[1]]
 
                                 # La condition : la cellule candidate doit avoir la valeur attendue.
                                 cond = (cell_val == deposit_value)
+
                                 def do_update(_):
                                     updated_state = state.replace(
-                                        agent_states=state.agent_states.at[i].set(Items.agent_without_object.value),
-                                        grid=state.grid.at[candidate[0], candidate[1]].set(expected_cell)
+                                        agent_states=state.agent_states.at[i].set(
+                                            Items.agent_without_object.value),
+                                        grid=state.grid.at[candidate[0], candidate[1]].set(
+                                            expected_cell)
                                     )
                                     return (updated_state, True)
+
                                 def no_update(_):
                                     return (state, False)
                                 return jax.lax.cond(cond, do_update, no_update, operand=None)
                             return jax.lax.cond(done, skip_fn, try_fn, operand=None)
 
                         init = (state, False)
-                        final_state, final_done = jax.lax.fori_loop(0, total, body_fn, init)
+                        final_state, final_done = jax.lax.fori_loop(
+                            0, total, body_fn, init)
                         return final_state
 
                     # On applique la condition sur le statut de l'agent.
                     return jax.lax.cond(
                         (state.agent_states[i] == Items.agent_with_primary.value) |
-                        (state.agent_states[i] == Items.agent_with_secondary.value),
+                        (state.agent_states[i] ==
+                         Items.agent_with_secondary.value),
                         drop_logic,
                         no_drop,
                         operand=None
@@ -455,18 +465,21 @@ class WarehouseManagement(MultiAgentEnv):
         # --- 4. Vérification de la terminaison ("done") ---
         def check_done(state: State) -> bool:
             """
-            Vérifie si l'agent (ou l'environnement) a terminé sa tâche.
-            Logique : Si aucune cellule de la grille ne contient la valeur EMPTY_OUTPUT,
-            alors la terminaison est True (l'épisode est terminé) ; sinon, False.
+            Vérifie si l'environnement a atteint un état terminal.
+            - L'épisode est terminé si l'on a atteint `MAX_STEPS`.
+            - OU si toutes les cases `empty_output` ont été remplacées.
             """
-            # Crée un masque booléen indiquant pour chaque cellule si elle n'est pas EMPTY_OUTPUT.
-            not_empty_output = state.grid != Items.empty_output.value
 
-            # Vérifie si toutes les cellules satisfont la condition (i.e. aucune cellule n'est EMPTY_OUTPUT).
-            grid_done = jnp.all(not_empty_output)
+            # Vérifie si le nombre d'étapes a dépassé la limite
+            reached_max_steps = state.step >= MAX_STEPS
 
-            # L'épisode est terminé si l'une ou l'autre condition est vraie.
-            return jnp.logical_or(grid_done, state.step >= MAX_STEPS)
+            # Vérifie si toutes les cases EMPTY_OUTPUT sont remplacées
+            no_empty_outputs_left = jnp.all(
+                state.grid != Items.empty_output.value)
+
+            # L'épisode se termine si l'une des conditions est remplie
+            return jnp.logical_or(reached_max_steps, no_empty_outputs_left)
+
 
         # --- 5. Calcul de la récompense ---
         def compute_reward(state: State, previous_state: State) -> Dict[str, float]:
@@ -521,7 +534,7 @@ class WarehouseManagement(MultiAgentEnv):
         state_after_craft = update_craft(state_after_pick_drop)
 
         # Incrémenter le compteur d'étapes
-        new_state = state_after_craft.replace(step=state.step + 1)
+        new_state = state_after_craft.replace(step=state_after_craft.step + 1)
 
         # Vérifier la terminaison
         done_flag = check_done(new_state)
@@ -530,7 +543,7 @@ class WarehouseManagement(MultiAgentEnv):
         reward = compute_reward(new_state, state)
 
         # Mettre à jour la récompense
-        new_state = state_after_craft.replace(reward=reward)
+        new_state = new_state.replace(reward=reward)
 
         # Construire les dictionnaires de récompenses et de terminaisons pour chaque agent
         rewards = {agent: reward for agent in self.agents}
@@ -664,26 +677,13 @@ if __name__ == '__main__':
 
     # Réinitialisation de l'environnement
     obs, state = env.reset(key)
-    print("Observations initiales :")
-    for agent, observation in obs.items():
-        # On convertit éventuellement en numpy pour un affichage plus lisible
-        print(f"{agent}:\n", onp.array(observation))
-
-    print(state.grid)
 
     # # Création d'un dictionnaire d'actions pour le pas courant
     # # Ici, chaque agent effectue l'action "right" (4)
-    actions = {agent: Actions.right.value for agent in env.agents}
+    actions = {agent: Actions.noop.value for agent in env.agents}
 
     # Effectuer un pas dans l'environnement
-    obs, new_state, rewards, dones, infos = env.step_env(key, state, actions)
-
-    print("\nObservations après un pas :")
-    for agent, observation in obs.items():
-        print(f"{agent}:\n", onp.array(observation))
-
-    print(new_state.grid)
-
-    print("\nRécompenses :", rewards)
-    print("Terminaisons (dones) :", dones)
-    print("Infos :", infos)
+    for i in range(0, 50):
+        obs, state, rewards, dones, infos = env.step(
+            key, state, actions)
+        print(i, " => \n", rewards, " || ", dones)

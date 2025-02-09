@@ -1,26 +1,34 @@
-"LR": 5e-4
-"NUM_ENVS": 1024  # Nombre d'environnements parallèles
-"NUM_STEPS": 128
-"TOTAL_TIMESTEPS": 1e10
-"UPDATE_EPOCHS": 4
-"NUM_MINIBATCHES": 4
-"GAMMA": 0.99
-"GAE_LAMBDA": 0.95
-"LEARNING_RATE": 3e-4  # Taux d'apprentissage
-"CLIP_EPS": 0.2
-"ENT_COEF": 0.01
-"VF_COEF": 0.5
-"MAX_GRAD_NORM": 0.5
-"ENV_NAME": "hanabi"
-"ENV_KWARGS": {}
-"ANNEAL_LR": False
-"NUM_AGENTS": 2  # Nombre d'agents dans l'environnement
+# Hyperparamètres principaux
+"LR": 2.5e-4  # Taux d'apprentissage
+"NUM_ENVS": 16  # Nombre d'environnements parallèles
+"NUM_STEPS": 128  # Nombre d'étapes par environnement avant une mise à jour
+"TOTAL_TIMESTEPS": 1e6  # Nombre total de pas d'entraînement
+"UPDATE_EPOCHS": 4  # Nombre d'itérations d'optimisation par mise à jour
+"NUM_MINIBATCHES": 4  # Nombre de mini-batchs par mise à jour
 
-# WandB Params
-"WANDB_MODE": "disabled"
-"ENTITY": ""
-"PROJECT": ""
+# Hyperparamètres du RL
+"GAMMA": 0.99  # Facteur de discount pour la récompense future
+"GAE_LAMBDA": 0.95  # Facteur de pondération pour GAE (Generalized Advantage Estimation)
+"CLIP_EPS": 0.2  # Facteur de clipping pour PPO
+"ENT_COEF": 0.01  # Coefficient de l'entropie pour encourager l'exploration
+"VF_COEF": 0.5  # Coefficient de pondération pour la perte de Critic
+"MAX_GRAD_NORM": 0.5  # Clip des gradients pour éviter les explosions de gradients
 
-"NUM_UPDATES": 10  # Nombre de mises à jour
-"EPSILON_CLIP": 0.2,  # Facteur PPO de clipping
-"ENTROPY_COEF": 0.01,  # Poids de l'entropie pour l'exploration
+# Activation et Architecture du Réseau
+"ACTIVATION": "tanh"  # Fonction d'activation utilisée ("relu" ou "tanh")
+
+# Nom et paramètres de l'environnement
+"ENV_NAME": "warehouse_management"  # Nom de l'environnement
+"ENV_KWARGS": {}  # Arguments optionnels pour l'environnement
+
+# Gestion du Learning Rate
+"ANNEAL_LR": True  # Diminution progressive du Learning Rate
+
+# Initialisation du seed aléatoire
+"SEED": 30  # Seed de reproductibilité
+"NUM_SEEDS": 10  # Nombre de runs avec des seeds différentes
+
+# WandB Configuration (pour tracking des expériences)
+"ENTITY": ""  # Organisation ou utilisateur WandB
+"PROJECT": "jaxmarl-warehouse"  # Projet WandB
+"WANDB_MODE": "disabled"  # Activer ("online") ou désactiver ("disabled") WandB
