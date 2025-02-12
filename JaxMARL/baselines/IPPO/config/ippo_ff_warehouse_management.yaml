@@ -2,9 +2,10 @@
 "LR": 2.5e-4  # Taux d'apprentissage
 "NUM_ENVS": 16  # Nombre d'environnements parallèles
 "NUM_STEPS": 128  # Nombre d'étapes par environnement avant une mise à jour
-"TOTAL_TIMESTEPS": 1e6  # Nombre total de pas d'entraînement
+"TOTAL_TIMESTEPS": 1e7  # Nombre total de pas d'entraînement
 "UPDATE_EPOCHS": 4  # Nombre d'itérations d'optimisation par mise à jour
 "NUM_MINIBATCHES": 4  # Nombre de mini-batchs par mise à jour
+"TEST_EPISODES": 5  # Nombre d'épisodes pour l'évaluation
 
 # Hyperparamètres du RL
 "GAMMA": 0.99  # Facteur de discount pour la récompense future

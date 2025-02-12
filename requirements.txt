@@ -1,3 +1,6 @@
 distrax
 pygame
 jax[cuda]
+imageio
+keyboard
+orbax

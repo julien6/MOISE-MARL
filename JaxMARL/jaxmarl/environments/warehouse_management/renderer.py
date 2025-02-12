@@ -178,5 +178,4 @@ def run_visualization():
 
 
 if __name__ == "__main__":
-
     run_visualization()

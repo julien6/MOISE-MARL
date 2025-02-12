@@ -1,1 +1,2 @@
 from .warehouse_management import WarehouseManagement, GRID_SIZE, VIEW_SCOPE, Actions
+from .warehouse_management_visualizer import WarehouseManagementVisualizer

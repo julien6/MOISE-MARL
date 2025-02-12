@@ -1,34 +1,137 @@
+import json
+import jax.experimental
+import orbax.checkpoint as ocp
 import jax
 import optax
 import jax.numpy as jnp
-import flax.linen as nn
-import distrax
 import numpy as np
+import flax.linen as nn
 import distrax
 import jaxmarl
 import matplotlib.pyplot as plt
 import hydra
 import wandb
+import pickle
+import os
+import imageio
+import keyboard
 
+from functools import partial
 from typing import Sequence
 from flax.linen.initializers import constant, orthogonal
 from typing import Sequence, NamedTuple, Any
 from flax.training.train_state import TrainState
-from jaxmarl.wrappers.baselines import MPELogWrapper as LogWrapper
+from jaxmarl.wrappers.baselines import LogWrapper
 from omegaconf import OmegaConf
-from jaxmarl.environments.warehouse_management import WarehouseManagement
+from jaxmarl.environments.warehouse_management import WarehouseManagement, WarehouseManagementVisualizer
+
+
+CHECKPOINT_DIR = os.path.join(os.path.dirname(
+    os.path.abspath(__file__)), "checkpoints")
+SAVE_INTERVAL = 10000  # Sauvegarde tous les 10k steps
+TEST_EPISODES = 10      # Nombre d'épisodes de test
+
+# Initialisation du gestionnaire de checkpoints avec Orbax
+options = ocp.CheckpointManagerOptions(max_to_keep=3, create=True)
+checkpointer = ocp.PyTreeCheckpointer()
+manager = ocp.CheckpointManager(CHECKPOINT_DIR, checkpointer, options)
 
 
 # =======================
 # 🎯 Détection des GPUs
 # =======================
 devices = jax.devices()
-use_pmap = any(d.device_kind == "gpu" for d in devices)  # Vérifie la présence d'un GPU
+# ✅ Prend en compte "cuda"
+use_pmap = "gpu" in str(jax.extend.backend.get_backend().platform).lower()
 
 if use_pmap:
-    print(f"🚀 {len(devices)} GPU(s) détecté(s), activation de `pmap`.")
+    print(f"🚀 {len(devices)} GPU(s) détecté(s) : {[str(d) for d in devices]}")
+    num_gpus = sum(1 for d in devices if "gpu" in str(d).lower() or "cuda" in str(d).lower(
+    ) or "tesla" in str(d).lower())
+    if num_gpus < 2:
+        print("Juste un GPU, exécution sur CPU uniquement.")
+    else:
+        print("Plus que un GPU, parallélisation avec 'pmap'")
 else:
-    print("⚠️ Aucun GPU détecté, exécution sur CPU uniquement (sans `pmap`).")
+    print("⚠️ Aucun GPU détecté, exécution sur CPU uniquement.")
+
+
+def save_checkpoint(train_state, step):
+    """
+    Sauvegarde un checkpoint du modèle avec Orbax.
+
+    Arguments:
+        - train_state (TrainState) : état actuel du modèle à sauvegarder.
+        - step (int) : numéro de l'étape d'entraînement.
+    """
+    print(f"💾 Sauvegarde du checkpoint à l'étape {step}...")
+
+    # Utilisation de la nouvelle API pour sauvegarder avec Orbax
+    manager.save(step, train_state[0])
+    print(f"✅ Checkpoint sauvegardé à l'étape {step}")
+
+
+def load_checkpoint():
+    """
+    Charge le dernier checkpoint disponible avec Orbax.
+
+    Retourne:
+        - train_state mis à jour avec les paramètres du dernier checkpoint.
+        - step correspondant au checkpoint chargé.
+        - None si aucun checkpoint n'est trouvé.
+    """
+    step = manager.latest_step()
+
+    if step is None:
+        print("⚠️ Aucun checkpoint trouvé, initialisation à zéro.")
+        return None, 0  # Aucun checkpoint disponible
+
+    print(f"🔄 Chargement du checkpoint {step}...")
+
+    # Charger le train_state à partir du dernier checkpoint
+    train_state = manager.restore(step)
+
+    print(f"✅ Checkpoint {step} chargé avec succès.")
+    return train_state, step
+
+
+def select_best_model(metrics):
+    """
+    Sélectionne le meilleur modèle parmi les runs effectués avec différentes graines.
+
+    Arguments :
+        - metrics (dict) : Dictionnaire contenant les métriques des `NUM_SEEDS` runs.
+    Retourne :
+        - best_seed_idx : L'index de la meilleure graine.
+        - best_score : Score moyen final du meilleur modèle.
+    """
+
+    metrics = {k: v.tolist() for k, v in jax.device_get(metrics).items()}
+
+    # Extraction des scores finaux sur les 10 derniers updates pour éviter les fluctuations aléatoires
+    final_returns = np.mean(metrics["returned_episode_returns"], axis=1)
+
+    # Critère principal : choisir le modèle ayant le plus haut score moyen final
+    best_seed_idx = np.argmax(final_returns)
+    best_score = final_returns[best_seed_idx]
+
+    # 🔎 Optionnel : Vérification d'autres métriques pour confirmer la robustesse du modèle
+    best_actor_loss = np.mean(
+        metrics["actor_loss"][best_seed_idx])  # Perte de l'acteur
+    best_critic_loss = np.mean(
+        metrics["critic_loss"][best_seed_idx])  # Perte du critique
+    best_entropy = np.mean(metrics["entropy"][best_seed_idx])  # Entropie
+    best_total_loss = np.mean(
+        metrics["total_loss"][best_seed_idx])  # Total loss
+
+    print(f"🏆 Meilleur modèle : Seed {best_seed_idx}")
+    print(f"🔹 Score moyen final : {best_score:.2f}")
+    print(f"🎭 Actor Loss : {best_actor_loss:.6f}")
+    print(f"📉 Critic Loss : {best_critic_loss:.2f}")
+    print(f"🎲 Entropy : {best_entropy:.3f}")
+    print(f"📊 Total Loss : {best_total_loss:.2f}")
+
+    return int(best_seed_idx), best_score
 
 
 class ActorCritic(nn.Module):
@@ -205,7 +308,8 @@ def make_train(config, rng_init):
     env = jaxmarl.make(config["ENV_NAME"], **config["ENV_KWARGS"])
     config["NUM_ACTORS"] = env.num_agents * config["NUM_ENVS"]
     config["NUM_UPDATES"] = (
-        config["TOTAL_TIMESTEPS"] // config["NUM_STEPS"] // config["NUM_ENVS"]
+        # config["TOTAL_TIMESTEPS"] // config["NUM_STEPS"] // config["NUM_ENVS"]
+        5000 // config["NUM_STEPS"] // config["NUM_ENVS"]
     )
     config["MINIBATCH_SIZE"] = (
         config["NUM_ACTORS"] * config["NUM_STEPS"] // config["NUM_MINIBATCHES"]
@@ -215,17 +319,18 @@ def make_train(config, rng_init):
 
     def linear_schedule(count):
         frac = 1.0 - (count // (config["NUM_MINIBATCHES"]
-                      * config["UPDATE_EPOCHS"])) / config["NUM_UPDATES"]
+                                * config["UPDATE_EPOCHS"])) / config["NUM_UPDATES"]
         return config["LR"] * frac
 
     # INIT NETWORK
     network = ActorCritic(env.action_space(
         env.agents[0]).n, activation=config["ACTIVATION"])
     obs_dim = np.prod(env.observation_space(
-        env.agents[0]).shape, dtype=int)  # Aplatissement correctœœ
+        env.agents[0]).shape, dtype=int)  # Aplatissement correct
     init_x = jnp.zeros(obs_dim, dtype=jnp.float32)
 
     network_params = network.init(rng_init, init_x)
+
     if config["ANNEAL_LR"]:
         tx = optax.chain(
             optax.clip_by_global_norm(config["MAX_GRAD_NORM"]),
@@ -235,23 +340,13 @@ def make_train(config, rng_init):
         tx = optax.chain(optax.clip_by_global_norm(
             config["MAX_GRAD_NORM"]), optax.adam(config["LR"], eps=1e-5))
 
-    train_state = TrainState.create(
-        apply_fn=network.apply,
-        params=network_params,
-        tx=tx,
-    )
-
-    # 🔹 Répliquer l'état d'entraînement sur tous les GPU si `pmap` est activé
-    if use_pmap:
-        train_state = jax.device_put_replicated(train_state, devices)
-        print(
-            f"✅ Réplication train_state pour {len(devices)} GPU(s) : {jax.tree_map(lambda x: x.shape, train_state)}")
-
-    def train(rng):
+    @jax.jit
+    def train(rng, train_state=None, start_step=0):
 
         # INIT ENV
         rng, _rng = jax.random.split(rng)
         reset_rng = jax.random.split(_rng, config["NUM_ENVS"])
+
         obsv, env_state = jax.vmap(env.reset)(reset_rng)
 
         # TRAIN LOOP
@@ -262,17 +357,18 @@ def make_train(config, rng_init):
             train_state, env_state, last_obs, update_count, rng = runner_state
 
             obs_batch = batchify(last_obs, env.agents,
-                                    config["NUM_ACTORS"])
+                                 config["NUM_ACTORS"])
 
             # SELECT ACTION
             rng, _rng = jax.random.split(rng)
 
             pi, value = network.apply(train_state.params, obs_batch)
+
             action = pi.sample(seed=_rng)
 
             log_prob = pi.log_prob(action)
             env_act = unbatchify(action, env.agents,
-                                    config["NUM_ENVS"], env.num_agents)
+                                 config["NUM_ENVS"], env.num_agents)
 
             # STEP ENV
             rng, _rng = jax.random.split(rng)
@@ -288,7 +384,7 @@ def make_train(config, rng_init):
                 action,
                 value,
                 batchify(reward, env.agents,
-                            config["NUM_ACTORS"]).squeeze(),
+                         config["NUM_ACTORS"]).squeeze(),
                 log_prob,
                 obs_batch,
                 info,
@@ -297,14 +393,15 @@ def make_train(config, rng_init):
                             obsv, update_count, rng)
             return runner_state, transition
 
-
         # UPDATE MINIBATCH
+
         @jax.jit
         def _update_minbatch(train_state, batch_info):
             traj_batch, advantages, targets = batch_info
 
             def _loss_fn(params, traj_batch, gae, targets):
                 # RERUN NETWORK
+
                 pi, value = network.apply(params, traj_batch.obs)
                 log_prob = pi.log_prob(traj_batch.action)
 
@@ -317,7 +414,7 @@ def make_train(config, rng_init):
                     value_pred_clipped - targets)
                 value_loss = (
                     0.5 * jnp.maximum(value_losses,
-                                        value_losses_clipped).mean()
+                                      value_losses_clipped).mean()
                 )
 
                 # CALCULATE ACTOR LOSS
@@ -359,8 +456,8 @@ def make_train(config, rng_init):
 
             return train_state, loss_info
 
-
         # UPDATE NETWORK
+
         @jax.jit
         def _update_epoch(update_state, unused):
 
@@ -373,9 +470,10 @@ def make_train(config, rng_init):
             ), "batch size must be equal to number of steps * number of actors"
             permutation = jax.random.permutation(_rng, batch_size)
             batch = (traj_batch, advantages, targets)
-            batch = jax.tree.map(
-                lambda x: x.reshape((batch_size,) + x.shape[2:]), batch
-            )
+
+            batch = jax.tree.map(lambda x: x.reshape(
+                (-1,) + x.shape[2:]), batch)
+
             shuffled_batch = jax.tree.map(
                 lambda x: jnp.take(x, permutation, axis=0), batch
             )
@@ -385,13 +483,14 @@ def make_train(config, rng_init):
                 ),
                 shuffled_batch,
             )
-            train_state, loss_info = jax.lax.scan(_update_minbatch, train_state, minibatches)
+            train_state, loss_info = jax.lax.scan(
+                _update_minbatch, train_state, minibatches)
             update_state = (train_state, traj_batch,
                             advantages, targets, rng)
             return update_state, loss_info
 
-
         # GET ADVANTAGES
+
         @jax.jit
         def _get_advantages(gae_and_next_value, transition):
             gae, next_value = gae_and_next_value
@@ -410,12 +509,13 @@ def make_train(config, rng_init):
             )
             return (gae, value), gae
 
-
         # UPDATE STEP
+
         @jax.jit
         def _update_step(runner_state, unused):
-            
-            runner_state, traj_batch = jax.lax.scan(_env_step, runner_state, None, config["NUM_STEPS"])
+
+            runner_state, traj_batch = jax.lax.scan(
+                _env_step, runner_state, None, config["NUM_STEPS"])
 
             # CALCULATE ADVANTAGE
             train_state, env_state, last_obs, update_count, rng = runner_state
@@ -435,55 +535,166 @@ def make_train(config, rng_init):
 
             advantages, targets = _calculate_gae(traj_batch, last_val)
 
-            def callback(metric):
-                if wandb.run is not None:  # Vérifie si wandb.init() a été appelé
-                    if metric["update_step"] % 10 == 0:  # Log tous les 10 updates
-                        wandb.log(metric, step=metric["update_step"])
-
             update_state = (train_state, traj_batch, advantages, targets, rng)
-            update_state, loss_info = jax.lax.scan(_update_epoch, update_state, None, config["UPDATE_EPOCHS"])
+            update_state, loss_info = jax.lax.scan(
+                _update_epoch, update_state, None, config["UPDATE_EPOCHS"])
             train_state = update_state[0]
             metric = traj_batch.info
             rng = update_state[-1]
 
             update_count = update_count + 1
 
-            def log_fn(_):
-                mean_reward = jnp.mean(traj_batch.reward)
-                jax.debug.print(
-                    "[Update {x}] Mean Reward: {y}", x=update_count, y=mean_reward)
-                return None
+            def callback(metric):
+                # Si nécessaire, on peut aussi envoyer ces métriques à WandB
+                if metric["update_count"] % 10 == 0 and config["WANDB_MODE"] != "disabled":
+                    wandb.log(metric, step=metric["update_count"])
 
-            # jax.lax.cond(update_count % 10 == 0, log_fn, lambda _: None, None)
+                    print("\n")
+                    # Définir les colonnes à afficher et leur largeur (en caractères)
+                    columns = [
+                        ("update_count", 12),
+                        ("total_loss", 12),
+                        ("returned_episode", 20),
+                        ("returned_episode_returns", 25),
+                        ("actor_loss", 12),
+                        ("critic_loss", 12)
+                    ]
+
+                    # Afficher l'en-tête de la table lorsque update_count vaut 1 (ou lors du premier appel)
+                    header = "| " + \
+                        " | ".join(
+                            [f"{col_name:^{width}}" for col_name, width in columns]) + " |"
+                    print(header)
+                    print("-" * len(header))
+
+                    # Construire et afficher la ligne correspondant aux métriques actuelles
+                    row = "| " + \
+                        " | ".join(
+                            [f"{str(metric[col_name]):^{width}}" for col_name, width in columns]) + " |"
+                    print(row)
 
             r0 = {"ratio0": loss_info["ratio"][0, 0].mean()}
             loss_info = jax.tree.map(lambda x: x.mean(), loss_info)
             metric = jax.tree.map(lambda x: x.mean(), metric)
-
-            metric["update_step"] = update_count
+            metric["update_count"] = update_count
             metric["env_step"] = update_count * \
                 config["NUM_STEPS"] * config["NUM_ENVS"]
-
             metric = {**metric, **loss_info, **r0}
 
             jax.experimental.io_callback(callback, None, metric)
+
             runner_state = (train_state, env_state,
                             last_obs, update_count, rng)
             return runner_state, metric
 
         rng, _rng = jax.random.split(rng)
-        runner_state = (train_state, env_state, obsv, 0, _rng)
-        runner_state, metric = jax.lax.scan(_update_step, runner_state, None, config["NUM_UPDATES"]
-        )
+        if not train_state:
+            train_state = TrainState.create(
+                apply_fn=network.apply,
+                params=network_params,
+                tx=tx)
 
-        return {"runner_state": runner_state, "metrics": metric}
+        runner_state = (train_state, env_state, obsv, start_step, _rng)
+
+        runner_state, metric = jax.lax.scan(_update_step, runner_state, None, config["NUM_UPDATES"]
+                                            )
+
+        return runner_state, metric
 
     return train
+
+
+def make_test(config, rng_init, network_params=None, start_step=0):
+    """
+    Exécute plusieurs épisodes de test en enregistrant les récompenses et les états.
+
+    Arguments :
+    - config (dict) : Configuration contenant les paramètres de l'environnement.
+    - rng_init : Graine aléatoire pour l'initialisation.
+    - network_params (any) : Paramètres du réseau entraîné (ou None pour réinitialiser).
+    - start_step (int) : Numéro de l'étape de départ.
+
+    Retourne :
+    - reward_sums (list) : Liste des sommes de récompenses pour chaque épisode.
+    - all_states (list) : Liste des séquences d'états pour chaque épisode.
+    """
+
+    TEST_EPISODES = config["TEST_EPISODES"]
+    NUM_STEPS = config["NUM_STEPS"]
+
+    env = jaxmarl.make(config["ENV_NAME"], **config["ENV_KWARGS"])
+
+    # INIT NETWORK
+    network = ActorCritic(env.action_space(
+        env.agents[0]).n, activation=config["ACTIVATION"])
+    obs_dim = np.prod(env.observation_space(
+        env.agents[0]).shape, dtype=int)  # Aplatissement correct
+
+    if network_params is None:
+        network_params = network.init(
+            rng_init, jnp.zeros(obs_dim, dtype=jnp.float32))
+
+    # Initialisation des listes de stockage
+    reward_sums = []  # Stocke la somme des récompenses de chaque épisode
+    all_states = []   # Stocke la liste des états pour chaque épisode
+
+    key = jax.random.PRNGKey(0)
+    key_e = jax.random.split(key, TEST_EPISODES)
+
+    for episode in range(TEST_EPISODES):
+
+        key, key_r, key_a = jax.random.split(key_e[episode], 3)
+
+        last_obs, state = env.reset(key_r)
+
+        reward_seq = []  # Liste des récompenses pour cet épisode
+        state_seq = []   # Liste des états pour cet épisode
+
+        for step in range(NUM_STEPS):
+
+            state_seq.append(state)
+            # Iterate random keys and sample actions
+            key, key_s, key_a = jax.random.split(key, 3)
+
+            obs_batch = batchify(last_obs, env.agents, env.num_agents)
+
+            # SELECT ACTION
+            pi, value = network.apply(network_params, obs_batch)
+            action = pi.sample(seed=key_a)
+
+            actions = unbatchify(action, env.agents, 1, env.num_agents)
+            actions = jax.device_get({agent: jax.device_get(
+                action).item() for agent, action in actions.items()})
+
+            # Step environment
+            last_obs, state, rewards, dones, infos = env.step(
+                key_s, state, actions)
+
+            # Stocke la récompense obtenue
+            reward_seq.append(
+                sum([v.item() for v in rewards.values()]) // env.num_agents)
+
+        # Stocker la somme des récompenses de l'épisode
+        reward_sums.append(sum(reward_seq))
+
+        # Stocker la séquence complète des états de l'épisode
+        all_states.append(state_seq)
+
+    return reward_sums, all_states
 
 
 @hydra.main(version_base=None, config_path="config", config_name="ippo_ff_warehouse_management")
 def main(config):
     """Fonction principale de l'entraînement IPPO-FF sur Warehouse Management."""
+
+    # Charger un checkpoint existant
+    checkpoint = load_checkpoint()  # Par défaut, charge le dernier
+    if checkpoint is not None:
+        train_state, start_step = checkpoint
+        print(f"🔄 Reprise de l'entraînement depuis le step {start_step}")
+    else:
+        train_state = None
+        start_step = 0
 
     # 🔹 Convertit la configuration Hydra en dictionnaire standard
     config = OmegaConf.to_container(config, resolve=True)
@@ -498,38 +709,53 @@ def main(config):
             mode=config["WANDB_MODE"],
         )
 
-    rng = jax.random.PRNGKey(config["SEED"])
+    rng = jax.random.PRNGKey(int(config["SEED"]))
+
+    # Sinon, plusieurs graines pour vmap
     rngs = jax.random.split(rng, config["NUM_SEEDS"])
 
     train_jit = jax.jit(make_train(config, rng))
+    train_fn = jax.vmap(train_jit, in_axes=0)
+    runner_state, metrics = train_fn(rngs)
+    last_step = runner_state[3]
 
-    if use_pmap:
-        train_fn = jax.pmap(jax.vmap(train_jit, in_axes=0), axis_name="batch")
-    else:
-        train_fn = jax.vmap(train_jit, in_axes=0)
+    print(f"First training finished at {last_step[0]}, starting second one =============")
 
-    out = train_fn(rngs)
+    save_checkpoint(runner_state, last_step[0])
+    print(type(runner_state[0]))
+    train_state_1, last_step_1 = load_checkpoint()
+    print(type(train_state_1))
+    runner_state, metrics = train_fn(rngs, train_state_1, last_step) # jax.numpy.array([last_step_1] * int(config["SEED"])))
+    print("Second training finished, starting third one =============")
 
-    plt.plot(out["metrics"]["returned_episode_returns"].mean(axis=0))
-    plt.savefig(f"ippo_ff_{config['ENV_NAME']}.png")
-    plt.xlabel("Updates")
-    plt.ylabel("Returns")
-    plt.title(f"IPPO-FF={config['ENV_NAME']}")
-    # plt.show()
+    # best_seed_index, best_score = select_best_model(metrics)
+    # trained_params = jax.tree.map(
+    #     lambda x: x[best_seed_index], runner_state[0].params)
 
-    # 🚀 Ajout des logs sur WandB si activé
-    if config["WANDB_MODE"] != "disabled" and "returned_episode_returns" in out["metrics"]:
-        updates_x = jnp.arange(
-            out["metrics"]["returned_episode_returns"][0].shape[0])
-        returns_table = jnp.stack(
-            [updates_x, out["metrics"]["returned_episode_returns"].mean(axis=0)], axis=1)
-        returns_table = wandb.Table(
-            data=returns_table.tolist(), columns=["updates", "returns"])
+    # plt.plot(metrics["returned_episode_returns"].mean(axis=0))
+    # plt.savefig(f"ippo_ff_{config['ENV_NAME']}.png")
+    # plt.xlabel("Updates")
+    # plt.ylabel("Returns")
+    # plt.title(f"IPPO-FF={config['ENV_NAME']}")
+    # # plt.show()
 
-        wandb.log({
-            "returns_plot": wandb.plot.line(returns_table, "updates", "returns", title="Returns vs Updates"),
-            "final_returns": out["metrics"]["returned_episode_returns"][:, -1].mean(),
-        })
+    # # 🚀 Ajout des logs sur WandB si activé
+    # if config["WANDB_MODE"] != "disabled" and "returned_episode_returns" in metrics:
+    #     updates_x = jnp.arange(
+    #         metrics["returned_episode_returns"][0].shape[0])
+    #     returns_table = jnp.stack(
+    #         [updates_x, metrics["returned_episode_returns"].mean(axis=0)], axis=1)
+    #     returns_table = wandb.Table(
+    #         data=returns_table.tolist(), columns=["updates", "returns"])
+
+    #     wandb.log({
+    #         "returns_plot": wandb.plot.line(returns_table, "updates", "returns", title="Returns vs Updates"),
+    #         "final_returns": metrics["returned_episode_returns"][:, -1].mean(),
+    #     })
+
+    # rewards, states = make_test(config, rng, trained_params, start_step)
+    # wz = WarehouseManagementVisualizer()
+    # wz.animate_eps(states, "ippo_ff_warehouse_management.gif")
 
 
 if __name__ == '__main__':
