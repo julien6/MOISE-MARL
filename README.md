@@ -17,7 +17,7 @@
 </p>
 
 [**Installation**](#install) | [**Quick Start**](#start) | [**Environments**](#environments) | [**Algorithms**](#algorithms) | [**Citation**](#cite)
----
+---hanabi
 
 <div class="collage">
     <div class="column" align="centre">
