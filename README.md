@@ -1,4 +1,4 @@
-<h1 align="center">JaxMARL</h1>
+<h1 align="center">MOISE+MARL</h1>
 
 <p align="center">
        <a href="https://pypi.python.org/pypi/jaxmarl">
@@ -38,9 +38,9 @@
 
 ## Multi-Agent Reinforcement Learning in JAX
 
-🎉 **Update: JaxMARL was accepted at NeurIPS 2024 on Datasets and Benchmarks Track. See you in Vacouver!**
+🎉 **Update: MOISE+MARLwas accepted at AAMAS 2025 on "Learning and Adaptation" Track. See you in Vacouver!**
 
-JaxMARL combines ease-of-use with GPU-enabled efficiency, and supports a wide range of commonly used MARL environments as well as popular baseline algorithms. Our aim is for one library that enables thorough evaluation of MARL methods across a wide range of tasks and against relevant baselines. We also introduce SMAX, a vectorised, simplified version of the popular StarCraft Multi-Agent Challenge, which removes the need to run the StarCraft II game engine. 
+MOISE+MARLcombines ease-of-use with GPU-enabled efficiency, and supports a wide range of commonly used MARL environments as well as popular baseline algorithms. Our aim is for one library that enables thorough evaluation of MARL methods across a wide range of tasks and against relevant baselines. We also introduce SMAX, a vectorised, simplified version of the popular StarCraft Multi-Agent Challenge, which removes the need to run the StarCraft II game engine. 
 
 For more details, take a look at our [blog post](https://blog.foersterlab.com/jaxmarl/) or our [Colab notebook](https://colab.research.google.com/github/FLAIROx/JaxMARL/blob/main/jaxmarl/tutorials/JaxMARL_Walkthrough.ipynb), which walks through the basic usage.
 
@@ -76,7 +76,7 @@ We follow CleanRL's philosophy of providing single file implementations which ca
 
 <h2 name="install" id="install">Installation 🧗 </h2>
 
-**Environments** - Before installing, ensure you have the correct [JAX installation](https://github.com/google/jax#installation) for your hardware accelerator. We have tested up to JAX version 0.4.25. The JaxMARL environments can be installed directly from PyPi:
+**Environments** - Before installing, ensure you have the correct [JAX installation](https://github.com/google/jax#installation) for your hardware accelerator. We have tested up to JAX version 0.4.25. The MOISE+MARLenvironments can be installed directly from PyPi:
 
 ```
 pip install jaxmarl 
@@ -102,7 +102,7 @@ pip install jaxmarl
 
 We take inspiration from the [PettingZoo](https://github.com/Farama-Foundation/PettingZoo) and [Gymnax](https://github.com/RobertTLange/gymnax) interfaces. You can try out training an agent in our [Colab notebook](https://colab.research.google.com/github/FLAIROx/JaxMARL/blob/main/jaxmarl/tutorials/JaxMARL_Walkthrough.ipynb). Further introduction scripts can be found [here](https://github.com/FLAIROx/JaxMARL/tree/main/jaxmarl/tutorials).
 
-### Basic JaxMARL API  Usage 🖥️
+### Basic MOISE+MARLAPI  Usage 🖥️
 
 Actions, observations, rewards and done values are passed as dictionaries keyed by agent name, allowing for differing action and observation spaces. The done dictionary contains an additional `"__all__"` key, specifying whether the episode has ended. We follow a parallel structure, with each agent passing an action at each timestep. For asynchronous games, such as Hanabi, a dummy action is passed for agents not acting at a given timestep.
 
@@ -140,8 +140,8 @@ make run
 ## Contributing 🔨
 Please contribute! Please take a look at our [contributing guide](https://github.com/FLAIROx/JaxMARL/blob/main/CONTRIBUTING.md) for how to add an environment/algorithm or submit a bug report. Our roadmap also lives there.
 
-<h2 name="cite" id="cite">Citing JaxMARL 📜 </h2>
-If you use JaxMARL in your work, please cite us as follows:
+<h2 name="cite" id="cite">Citing MOISE+MARL📜 </h2>
+If you use MOISE+MARLin your work, please cite us as follows:
 
 ```
 @article{flair2023jaxmarl,
