@@ -4,3 +4,4 @@ jax[cuda]
 imageio
 keyboard
 orbax
+protobuf==3.20.*

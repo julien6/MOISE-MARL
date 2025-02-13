@@ -67,7 +67,7 @@ def save_checkpoint(train_state, step):
     print(f"💾 Sauvegarde du checkpoint à l'étape {step}...")
 
     # Utilisation de la nouvelle API pour sauvegarder avec Orbax
-    manager.save(step, train_state[0])
+    manager.save(step, train_state[0].params)
     print(f"✅ Checkpoint sauvegardé à l'étape {step}")
 
 
@@ -329,8 +329,6 @@ def make_train(config, rng_init):
         env.agents[0]).shape, dtype=int)  # Aplatissement correct
     init_x = jnp.zeros(obs_dim, dtype=jnp.float32)
 
-    network_params = network.init(rng_init, init_x)
-
     if config["ANNEAL_LR"]:
         tx = optax.chain(
             optax.clip_by_global_norm(config["MAX_GRAD_NORM"]),
@@ -341,7 +339,7 @@ def make_train(config, rng_init):
             config["MAX_GRAD_NORM"]), optax.adam(config["LR"], eps=1e-5))
 
     @jax.jit
-    def train(rng, train_state=None, start_step=0):
+    def train(rng, network_params=None, start_step=0):
 
         # INIT ENV
         rng, _rng = jax.random.split(rng)
@@ -588,11 +586,13 @@ def make_train(config, rng_init):
             return runner_state, metric
 
         rng, _rng = jax.random.split(rng)
-        if not train_state:
-            train_state = TrainState.create(
-                apply_fn=network.apply,
-                params=network_params,
-                tx=tx)
+        if not network_params:
+            network_params = network.init(rng_init, init_x)
+
+        train_state = TrainState.create(
+            apply_fn=network.apply,
+            params=network_params,
+            tx=tx)
 
         runner_state = (train_state, env_state, obsv, start_step, _rng)
 
@@ -690,7 +690,7 @@ def main(config):
     # Charger un checkpoint existant
     checkpoint = load_checkpoint()  # Par défaut, charge le dernier
     if checkpoint is not None:
-        train_state, start_step = checkpoint
+        network_params, start_step = checkpoint
         print(f"🔄 Reprise de l'entraînement depuis le step {start_step}")
     else:
         train_state = None
@@ -716,17 +716,23 @@ def main(config):
 
     train_jit = jax.jit(make_train(config, rng))
     train_fn = jax.vmap(train_jit, in_axes=0)
-    runner_state, metrics = train_fn(rngs)
+    runner_state, metrics = train_fn(rngs, network_params, jnp.full((TEST_EPISODES,), start_step))
     last_step = runner_state[3]
+
+    print(last_step)
+    print(type(last_step))
+    print(last_step.shape)
 
     print(f"First training finished at {last_step[0]}, starting second one =============")
 
     save_checkpoint(runner_state, last_step[0])
-    print(type(runner_state[0]))
-    train_state_1, last_step_1 = load_checkpoint()
-    print(type(train_state_1))
-    runner_state, metrics = train_fn(rngs, train_state_1, last_step) # jax.numpy.array([last_step_1] * int(config["SEED"])))
+    network_params_1, last_step_1 = load_checkpoint()
+
+    print("====================")
+    runner_state, metrics = train_fn(rngs, network_params_1, jnp.full((TEST_EPISODES,), last_step_1))
     print("Second training finished, starting third one =============")
+
+
 
     # best_seed_index, best_score = select_best_model(metrics)
     # trained_params = jax.tree.map(
