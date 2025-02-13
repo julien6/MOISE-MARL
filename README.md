@@ -1,48 +1,31 @@
 <h1 align="center">MOISE+MARL</h1>
 
-<p align="center">
-       <a href="https://pypi.python.org/pypi/jaxmarl">
-        <img src="https://img.shields.io/pypi/pyversions/jaxmarl.svg" /></a>
-       <a href="https://badge.fury.io/py/jaxmarl">
-        <img src="https://badge.fury.io/py/jaxmarl.svg" /></a>
-       <a href= "https://github.com/FLAIROx/JaxMARL/blob/main/LICENSE">
-        <img src="https://img.shields.io/badge/license-Apache2.0-blue.svg" /></a>
-       <a href= "https://colab.research.google.com/github/FLAIROx/JaxMARL/blob/main/jaxmarl/tutorials/JaxMARL_Walkthrough.ipynb">
-        <img src="https://colab.research.google.com/assets/colab-badge.svg" /></a>
-       <a href= "https://arxiv.org/abs/2311.10090">
-        <img src="https://img.shields.io/badge/arXiv-2311.10090-b31b1b.svg" /></a>
-       <a href= "https://jaxmarl.foersterlab.com/">
-        <img src="https://img.shields.io/badge/docs-green" /></a>
-       
-</p>
 
 [**Installation**](#install) | [**Quick Start**](#start) | [**Environments**](#environments) | [**Algorithms**](#algorithms) | [**Citation**](#cite)
----hanabi
+
 
 <div class="collage">
     <div class="column" align="centre">
         <div class="row" align="centre">
-            <img src="https://github.com/FLAIROx/JaxMARL/blob/main/docs/imgs/cramped_room.gif?raw=true" alt="Overcooked" width="20%">
-            <img src="https://github.com/FLAIROx/JaxMARL/blob/main/docs/imgs/mabrax.png?raw=true" alt="mabrax" width="20%">
-            <img src="https://github.com/FLAIROx/JaxMARL/blob/main/docs/imgs/storm.gif?raw=true" alt="STORM" width="20%">
-            <img src="https://github.com/FLAIROx/JaxMARL/blob/main/docs/imgs/warehouse_management.png?raw=true" alt="warehouse_management" width="20%">
+            <img src="https://github.com/julien6/MOISE-MARL/blob/main/JaxMARL/docs/imgs/cramped_room.gif?raw=true" alt="Overcooked" width="20%">
+            <img src="https://github.com/julien6/MOISE-MARL/blob/main/JaxMARL/docs/imgs/storm.gif?raw=true" alt="STORM" width="20%">
+            <img src="https://github.com/julien6/MOISE-MARL/blob/main/JaxMARL/docs/imgs/warehouse_management.gif?raw=true" alt="warehouse_management" width="20%">
         </div>
         <div class="row" align="centre">
-            <img src="https://github.com/FLAIROx/JaxMARL/blob/main/docs/imgs/coin_game.png?raw=true" alt="coin_game" width="20%">
-            <img src="https://github.com/FLAIROx/JaxMARL/blob/main/docs/imgs/qmix_MPE_simple_tag_v3.gif?raw=true" alt="MPE" width="20%">
-            <img src="https://github.com/FLAIROx/JaxMARL/blob/main/docs/imgs/jaxnav-ma.gif?raw=true" alt="jaxnav" width="20%">
-            <img src="https://github.com/FLAIROx/JaxMARL/blob/main/docs/imgs/smax.gif?raw=true" alt="SMAX" width="20%">
+            <img src="https://github.com/julien6/MOISE-MARL/blob/main/JaxMARL/docs/imgs/coin_game.png?raw=true" alt="coin_game" width="20%">
+            <img src="https://github.com/julien6/MOISE-MARL/blob/main/JaxMARL/docs/imgs/qmix_MPE_simple_tag_v3.gif?raw=true" alt="MPE" width="20%">
+            <img src="https://github.com/julien6/MOISE-MARL/blob/main/JaxMARL/docs/imgs/jaxnav-ma.gif?raw=true" alt="jaxnav" width="20%">
+            <img src="https://github.com/julien6/MOISE-MARL/blob/main/JaxMARL/docs/imgs/smax.gif?raw=true" alt="SMAX" width="20%">
         </div>
     </div>
 </div>
 
-## Multi-Agent Reinforcement Learning in JAX
+## Multi-Agent Reinforcement Learning with MOISE+MARL
 
-🎉 **Update: MOISE+MARLwas accepted at AAMAS 2025 on "Learning and Adaptation" Track. See you in Vacouver!**
+🎉 **Update: MOISE+MARLwas accepted at AAMAS 2025 on "Learning and Adaptation" Track. See you in Detroit!**
 
-MOISE+MARLcombines ease-of-use with GPU-enabled efficiency, and supports a wide range of commonly used MARL environments as well as popular baseline algorithms. Our aim is for one library that enables thorough evaluation of MARL methods across a wide range of tasks and against relevant baselines. We also introduce SMAX, a vectorised, simplified version of the popular StarCraft Multi-Agent Challenge, which removes the need to run the StarCraft II game engine. 
 
-For more details, take a look at our [blog post](https://blog.foersterlab.com/jaxmarl/) or our [Colab notebook](https://colab.research.google.com/github/FLAIROx/JaxMARL/blob/main/jaxmarl/tutorials/JaxMARL_Walkthrough.ipynb), which walks through the basic usage.
+
 
 <h2 name="environments" id="environments">Environments 🌍 </h2>
 
@@ -50,8 +33,7 @@ For more details, take a look at our [blog post](https://blog.foersterlab.com/ja
 | --- | --- | --- | --- |
 | 🔴 MPE | [Paper](https://arxiv.org/abs/1706.02275) | [Source](https://github.com/FLAIROx/JaxMARL/tree/main/jaxmarl/environments/mpe) | Communication orientated tasks in a multi-agent particle world
 | 🍲 Overcooked | [Paper](https://arxiv.org/abs/1910.05789) | [Source](https://github.com/FLAIROx/JaxMARL/tree/main/jaxmarl/environments/overcooked) | Fully-cooperative human-AI coordination tasks based on the homonyms video game | 
-| 🦾 Multi-Agent Brax | [Paper](https://arxiv.org/abs/2003.06709) | [Source](https://github.com/FLAIROx/JaxMARL/tree/main/jaxmarl/environments/mabrax) | Continuous multi-agent robotic control based on Brax, analogous to Multi-Agent MuJoCo |
-| 🎆 Hanabi | [Paper](https://arxiv.org/abs/1902.00506) | [Source](https://github.com/FLAIROx/JaxMARL/tree/main/jaxmarl/environments/hanabi) | Fully-cooperative partially-observable multiplayer card game |
+| 🎆 Warehouse Management | Novel | [Source](https://github.com/julien6/OMARLE) | Fully-cooperative partially-observable multiplayer management game |
 | 👾 SMAX | Novel | [Source](https://github.com/FLAIROx/JaxMARL/tree/main/jaxmarl/environments/smax) | Simplified cooperative StarCraft micro-management environment |
 | 🧮 STORM: Spatial-Temporal Representations of Matrix Games | [Paper](https://openreview.net/forum?id=54F8woU8vhq) | [Source](https://github.com/FLAIROx/JaxMARL/tree/main/jaxmarl/environments/storm) | Matrix games represented as grid world scenarios
 | 🧭 JaxNav | [Paper](https://www.arxiv.org/abs/2408.15099) | [Source](https://github.com/FLAIROx/JaxMARL/tree/main/jaxmarl/environments/jaxnav) | 2D geometric navigation for differential drive robots
@@ -144,19 +126,31 @@ Please contribute! Please take a look at our [contributing guide](https://github
 If you use MOISE+MARLin your work, please cite us as follows:
 
 ```
-@article{flair2023jaxmarl,
-      title={JaxMARL: Multi-Agent RL Environments in JAX},
-      author={Alexander Rutherford and Benjamin Ellis and Matteo Gallici and Jonathan Cook and Andrei Lupu and Gardar Ingvarsson and Timon Willi and Akbir Khan and Christian Schroeder de Witt and Alexandra Souly and Saptarashmi Bandyopadhyay and Mikayel Samvelyan and Minqi Jiang and Robert Tjarko Lange and Shimon Whiteson and Bruno Lacerda and Nick Hawes and Tim Rocktaschel and Chris Lu and Jakob Nicolaus Foerster},
-      journal={arXiv preprint arXiv:2311.10090},
-      year={2023}
-    }
+@inproceedings{soule2024moise_marl,
+  title     = {MOISE+MARL: Enhancing Explainability and Control in Multi-Agent Reinforcement Learning Through Organizational Integration},
+  author    = {Soulé, Julien and Jamont, Jean-Paul and Occello, Michel and Traonouez, Louis-Marie and Théron, Paul},
+  booktitle = {Proceedings of the 23rd International Conference on Autonomous Agents and Multiagent Systems (AAMAS)},
+  year      = {2024},
+  series    = {AAMAS '24},
+  pages     = {XXX--XXX}, % remplacer par les pages exactes
+  publisher = {International Foundation for Autonomous Agents and Multiagent Systems},
+  address   = {Auckland, New Zealand},
+  month     = {May},
+  abstract  = {This paper presents MOISE+MARL, a framework that enhances explainability and control in Multi-Agent Reinforcement Learning by integrating the MOISE+ organizational model. The proposed approach introduces trajectory-based evaluation methods and organizational constraints to guide agent learning while improving interpretability. Experimental results demonstrate significant improvements in policy stability, organizational fit, and task performance across multiple environments.},
+  keywords  = {Multi-Agent Reinforcement Learning, Organizational Models, Explainability, MOISE+, Policy Evaluation, Policy Control},
+}
 ```
 
 ## See Also 🙌
 There are a number of other libraries which inspired this work, we encourage you to take a look!
 
-JAX-native algorithms:
-- [Mava](https://github.com/instadeepai/Mava): JAX implementations of IPPO and MAPPO, two popular MARL algorithms.
+#### Role base related Projects:
+ - TODO
+
+#### Organizational inference related Projects:
+ - TODO
+
+<!-- - [Mava](https://github.com/instadeepai/Mava): JAX implementations of IPPO and MAPPO, two popular MARL algorithms.
 - [PureJaxRL](https://github.com/luchris429/purejaxrl): JAX implementation of PPO, and demonstration of end-to-end JAX-based RL training.
 - [Minimax](https://github.com/facebookresearch/minimax/): JAX implementations of autocurricula baselines for RL.
 - [JaxIRL](https://github.com/FLAIROx/jaxirl?tab=readme-ov-file): JAX implementation of algorithms for inverse reinforcement learning.
@@ -167,4 +161,4 @@ JAX-native environments:
 - [Pgx](https://github.com/sotetsuk/pgx): JAX implementations of classic board games, such as Chess, Go and Shogi.
 - [Brax](https://github.com/google/brax): A fully differentiable physics engine written in JAX, features continuous control tasks.
 - [XLand-MiniGrid](https://github.com/corl-team/xland-minigrid): Meta-RL gridworld environments inspired by XLand and MiniGrid.
-- [Craftax](https://github.com/MichaelTMatthews/Craftax): (Crafter + NetHack) in JAX.
+- [Craftax](https://github.com/MichaelTMatthews/Craftax): (Crafter + NetHack) in JAX. -->
