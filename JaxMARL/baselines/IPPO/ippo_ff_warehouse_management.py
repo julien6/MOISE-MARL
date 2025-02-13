@@ -743,7 +743,7 @@ def main(config):
     # plt.xlabel("Updates")
     # plt.ylabel("Returns")
     # plt.title(f"IPPO-FF={config['ENV_NAME']}")
-    # # plt.show()
+    # plt.show()
 
     # # 🚀 Ajout des logs sur WandB si activé
     # if config["WANDB_MODE"] != "disabled" and "returned_episode_returns" in metrics:

@@ -80,7 +80,7 @@ class State:
 
 GRID_SIZE = 10
 VIEW_SCOPE = 2
-MAX_STEPS = 50
+MAX_STEPS = 300
 
 
 class WarehouseManagement(MultiAgentEnv):
