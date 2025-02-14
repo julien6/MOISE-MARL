@@ -29,7 +29,6 @@ from jaxmarl.environments.warehouse_management import WarehouseManagement, Wareh
 CHECKPOINT_DIR = os.path.join(os.path.dirname(
     os.path.abspath(__file__)), "checkpoints")
 SAVE_INTERVAL = 10000  # Sauvegarde tous les 10k steps
-TEST_EPISODES = 10      # Nombre d'épisodes de test
 
 # Initialisation du gestionnaire de checkpoints avec Orbax
 options = ocp.CheckpointManagerOptions(max_to_keep=3, create=True)
@@ -304,16 +303,92 @@ def unbatchify(x: jnp.ndarray, agent_list, num_envs, num_actors):
     return {a: x[i, :, 0] for i, a in enumerate(agent_list)}
 
 
+def make_test(config=None, rng_init=None, network_params=None, start_step=0):
+    """
+    Exécute plusieurs épisodes de test en enregistrant les récompenses et les états.
+
+    Arguments :
+    - config (dict) : Configuration contenant les paramètres de l'environnement.
+    - rng_init : Graine aléatoire pour l'initialisation.
+    - network_params (any) : Paramètres du réseau entraîné (ou None pour réinitialiser).
+    - start_step (int) : Numéro de l'étape de départ.
+
+    Retourne :
+    - reward_sums (list) : Liste des sommes de récompenses pour chaque épisode.
+    - all_states (list) : Liste des séquences d'états pour chaque épisode.
+    """
+
+    TEST_EPISODES = config["TEST_EPISODES"]
+    NUM_STEPS = config["NUM_STEPS"]
+
+    env = jaxmarl.make(config["ENV_NAME"], **config["ENV_KWARGS"])
+
+    # INIT NETWORK
+    network = ActorCritic(env.action_space(
+        env.agents[0]).n, activation=config["ACTIVATION"])
+    obs_dim = np.prod(env.observation_space(
+        env.agents[0]).shape, dtype=int)  # Aplatissement correct
+
+    if network_params is None:
+        network_params = network.init(
+            rng_init, jnp.zeros(obs_dim, dtype=jnp.float32))
+
+    # Initialisation des listes de stockage
+    reward_sums = []  # Stocke la somme des récompenses de chaque épisode
+    all_states = []   # Stocke la liste des états pour chaque épisode
+
+    key = jax.random.PRNGKey(0)
+    key_e = jax.random.split(key, TEST_EPISODES)
+
+    for episode in range(TEST_EPISODES):
+
+        key, key_r, key_a = jax.random.split(key_e[episode], 3)
+
+        last_obs, state = env.reset(key_r)
+
+        reward_seq = []  # Liste des récompenses pour cet épisode
+        state_seq = []   # Liste des états pour cet épisode
+
+        for step in range(NUM_STEPS):
+
+            state_seq.append(state)
+            # Iterate random keys and sample actions
+            key, key_s, key_a = jax.random.split(key, 3)
+
+            obs_batch = batchify(last_obs, env.agents, env.num_agents)
+
+            # SELECT ACTION
+            pi, value = network.apply(network_params, obs_batch)
+            action = pi.sample(seed=key_a)
+
+            actions = unbatchify(action, env.agents, 1, env.num_agents)
+            actions = jax.device_get({agent: jax.device_get(
+                action).item() for agent, action in actions.items()})
+
+            # Step environment
+            last_obs, state, rewards, dones, infos = env.step(
+                key_s, state, actions)
+
+            # Stocke la récompense obtenue
+            reward_seq.append(
+                sum([v.item() for v in rewards.values()]) // env.num_agents)
+
+        # Stocker la somme des récompenses de l'épisode
+        reward_sums.append(sum(reward_seq))
+
+        # Stocker la séquence complète des états de l'épisode
+        all_states.append(state_seq)
+
+    return reward_sums, all_states
+
+
 def make_train(config, rng_init):
     env = jaxmarl.make(config["ENV_NAME"], **config["ENV_KWARGS"])
     config["NUM_ACTORS"] = env.num_agents * config["NUM_ENVS"]
-    config["NUM_UPDATES"] = (
-        # config["TOTAL_TIMESTEPS"] // config["NUM_STEPS"] // config["NUM_ENVS"]
-        5000 // config["NUM_STEPS"] // config["NUM_ENVS"]
-    )
+    config["NUM_UPDATES"] = (config["TOTAL_TIMESTEPS"] //
+                             config["NUM_STEPS"] // config["NUM_ENVS"])
     config["MINIBATCH_SIZE"] = (
-        config["NUM_ACTORS"] * config["NUM_STEPS"] // config["NUM_MINIBATCHES"]
-    )
+        config["NUM_ACTORS"] * config["NUM_STEPS"] // config["NUM_MINIBATCHES"])
 
     env = LogWrapper(env, replace_info=True)
 
@@ -544,8 +619,8 @@ def make_train(config, rng_init):
 
             def callback(metric):
                 # Si nécessaire, on peut aussi envoyer ces métriques à WandB
-                if metric["update_count"] % 10 == 0 and config["WANDB_MODE"] != "disabled":
-                    wandb.log(metric, step=metric["update_count"])
+                if metric["update_count"] % 10 == 0: # and config["WANDB_MODE"] != "disabled":
+                    # wandb.log(metric, step=metric["update_count"])
 
                     print("\n")
                     # Définir les colonnes à afficher et leur largeur (en caractères)
@@ -595,106 +670,17 @@ def make_train(config, rng_init):
             tx=tx)
 
         runner_state = (train_state, env_state, obsv, start_step, _rng)
-
-        runner_state, metric = jax.lax.scan(_update_step, runner_state, None, config["NUM_UPDATES"]
-                                            )
+        runner_state, metric = jax.lax.scan(
+            _update_step, runner_state, None, config["NUM_UPDATES"])
 
         return runner_state, metric
 
     return train
 
 
-def make_test(config, rng_init, network_params=None, start_step=0):
-    """
-    Exécute plusieurs épisodes de test en enregistrant les récompenses et les états.
-
-    Arguments :
-    - config (dict) : Configuration contenant les paramètres de l'environnement.
-    - rng_init : Graine aléatoire pour l'initialisation.
-    - network_params (any) : Paramètres du réseau entraîné (ou None pour réinitialiser).
-    - start_step (int) : Numéro de l'étape de départ.
-
-    Retourne :
-    - reward_sums (list) : Liste des sommes de récompenses pour chaque épisode.
-    - all_states (list) : Liste des séquences d'états pour chaque épisode.
-    """
-
-    TEST_EPISODES = config["TEST_EPISODES"]
-    NUM_STEPS = config["NUM_STEPS"]
-
-    env = jaxmarl.make(config["ENV_NAME"], **config["ENV_KWARGS"])
-
-    # INIT NETWORK
-    network = ActorCritic(env.action_space(
-        env.agents[0]).n, activation=config["ACTIVATION"])
-    obs_dim = np.prod(env.observation_space(
-        env.agents[0]).shape, dtype=int)  # Aplatissement correct
-
-    if network_params is None:
-        network_params = network.init(
-            rng_init, jnp.zeros(obs_dim, dtype=jnp.float32))
-
-    # Initialisation des listes de stockage
-    reward_sums = []  # Stocke la somme des récompenses de chaque épisode
-    all_states = []   # Stocke la liste des états pour chaque épisode
-
-    key = jax.random.PRNGKey(0)
-    key_e = jax.random.split(key, TEST_EPISODES)
-
-    for episode in range(TEST_EPISODES):
-
-        key, key_r, key_a = jax.random.split(key_e[episode], 3)
-
-        last_obs, state = env.reset(key_r)
-
-        reward_seq = []  # Liste des récompenses pour cet épisode
-        state_seq = []   # Liste des états pour cet épisode
-
-        for step in range(NUM_STEPS):
-
-            state_seq.append(state)
-            # Iterate random keys and sample actions
-            key, key_s, key_a = jax.random.split(key, 3)
-
-            obs_batch = batchify(last_obs, env.agents, env.num_agents)
-
-            # SELECT ACTION
-            pi, value = network.apply(network_params, obs_batch)
-            action = pi.sample(seed=key_a)
-
-            actions = unbatchify(action, env.agents, 1, env.num_agents)
-            actions = jax.device_get({agent: jax.device_get(
-                action).item() for agent, action in actions.items()})
-
-            # Step environment
-            last_obs, state, rewards, dones, infos = env.step(
-                key_s, state, actions)
-
-            # Stocke la récompense obtenue
-            reward_seq.append(
-                sum([v.item() for v in rewards.values()]) // env.num_agents)
-
-        # Stocker la somme des récompenses de l'épisode
-        reward_sums.append(sum(reward_seq))
-
-        # Stocker la séquence complète des états de l'épisode
-        all_states.append(state_seq)
-
-    return reward_sums, all_states
-
-
 @hydra.main(version_base=None, config_path="config", config_name="ippo_ff_warehouse_management")
 def main(config):
     """Fonction principale de l'entraînement IPPO-FF sur Warehouse Management."""
-
-    # Charger un checkpoint existant
-    checkpoint = load_checkpoint()  # Par défaut, charge le dernier
-    if checkpoint is not None:
-        network_params, start_step = checkpoint
-        print(f"🔄 Reprise de l'entraînement depuis le step {start_step}")
-    else:
-        train_state = None
-        start_step = 0
 
     # 🔹 Convertit la configuration Hydra en dictionnaire standard
     config = OmegaConf.to_container(config, resolve=True)
@@ -709,41 +695,66 @@ def main(config):
             mode=config["WANDB_MODE"],
         )
 
-    rng = jax.random.PRNGKey(int(config["SEED"]))
+    print("="*20)
+    print(" " * 10 + " 1 - LOADING LAST CHECKPOINT (OR INITIALIZING)")
+    print("="*20)
 
-    # Sinon, plusieurs graines pour vmap
+    # Charger un checkpoint existant
+    checkpoint = load_checkpoint()  # Par défaut, charge le dernier
+    if checkpoint is not None:
+        network_params, start_step = checkpoint
+        print(f"🔄 Reprise de l'entraînement depuis le step {start_step}")
+    else:
+        train_state = None
+        start_step = 0
+
+    print("\n"*3)
+
+    print("="*20)
+    print(" " * 10 + f" 2- TRAINING FOR {(config['TOTAL_TIMESTEPS'] // config['NUM_STEPS'] // config['NUM_ENVS'])} UPDATES")
+    print("="*20)
+
+    rng = jax.random.PRNGKey(int(config["SEED"]))
     rngs = jax.random.split(rng, config["NUM_SEEDS"])
 
     train_jit = jax.jit(make_train(config, rng))
     train_fn = jax.vmap(train_jit, in_axes=0)
-    runner_state, metrics = train_fn(rngs, network_params, jnp.full((TEST_EPISODES,), start_step))
+    runner_state, metrics = train_fn(
+        rngs, network_params, jnp.full((config["NUM_SEEDS"],), start_step))
     last_step = runner_state[3]
 
-    print(last_step)
-    print(type(last_step))
-    print(last_step.shape)
+    print("="*20)
+    print(f"TRAINING FINISHED AT {last_step[0]} UPDATES")
+    print("="*20)
 
-    print(f"First training finished at {last_step[0]}, starting second one =============")
+    print("\n"*3)
+
+    print("="*20)
+    print(" " * 10 + f" 3  - SAVING TRAINED MODELS AS THE LAST CHECKPOINT")
+    print("="*20)
 
     save_checkpoint(runner_state, last_step[0])
-    network_params_1, last_step_1 = load_checkpoint()
 
-    print("====================")
-    runner_state, metrics = train_fn(rngs, network_params_1, jnp.full((TEST_EPISODES,), last_step_1))
-    print("Second training finished, starting third one =============")
+    print("\n"*3)
 
+    print("="*20)
+    print(" " * 10 + f" 4  - TESTING TRAINED MODELS")
+    print("="*20)
 
-
-    # best_seed_index, best_score = select_best_model(metrics)
-    # trained_params = jax.tree.map(
-    #     lambda x: x[best_seed_index], runner_state[0].params)
-
-    # plt.plot(metrics["returned_episode_returns"].mean(axis=0))
-    # plt.savefig(f"ippo_ff_{config['ENV_NAME']}.png")
-    # plt.xlabel("Updates")
-    # plt.ylabel("Returns")
-    # plt.title(f"IPPO-FF={config['ENV_NAME']}")
+    print(f"4.1 - Generating the learning curve")
+    plt.plot(metrics["returned_episode_returns"].mean(axis=0))
+    plt.savefig(f"ippo_ff_{config['ENV_NAME']}.png")
+    plt.xlabel("Updates")
+    plt.ylabel("Returns")
+    plt.title(f"IPPO-FF={config['ENV_NAME']}")
     # plt.show()
+
+    print(f"4.2 - Selecting best model among the {config['NUM_SEEDS']} models")
+    best_seed_index, best_score = select_best_model(metrics)
+    print(
+        f"The best model is the {best_seed_index} with a score at {best_score}")
+    trained_params = jax.tree.map(
+        lambda x: x[best_seed_index], runner_state[0].params)
 
     # # 🚀 Ajout des logs sur WandB si activé
     # if config["WANDB_MODE"] != "disabled" and "returned_episode_returns" in metrics:
@@ -759,9 +770,12 @@ def main(config):
     #         "final_returns": metrics["returned_episode_returns"][:, -1].mean(),
     #     })
 
-    # rewards, states = make_test(config, rng, trained_params, start_step)
-    # wz = WarehouseManagementVisualizer()
-    # wz.animate_eps(states, "ippo_ff_warehouse_management.gif")
+    print(
+        f"4.3 - Testing the best over {config['TEST_EPISODES']} different episodes")
+    rewards, states = make_test(config, rng, trained_params, start_step)
+    print(f"4.4 - Rendering environments with trained agents as animated gif")
+    wz = WarehouseManagementVisualizer()
+    wz.animate_eps(states, "ippo_ff_warehouse_management.gif")
 
 
 if __name__ == '__main__':
