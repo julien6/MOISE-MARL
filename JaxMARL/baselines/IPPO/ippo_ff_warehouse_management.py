@@ -753,7 +753,7 @@ def main(config):
     best_seed_index, best_score = select_best_model(metrics)
     print(
         f"The best model is the {best_seed_index} with a score at {best_score}")
-    trained_params = jax.tree.map(
+    network_params = jax.tree.map(
         lambda x: x[best_seed_index], runner_state[0].params)
 
     # # 🚀 Ajout des logs sur WandB si activé
@@ -772,7 +772,7 @@ def main(config):
 
     print(
         f"4.3 - Testing the best over {config['TEST_EPISODES']} different episodes")
-    rewards, states = make_test(config, rng, trained_params, start_step)
+    rewards, states = make_test(config, rng, network_params, start_step)
     print(f"4.4 - Rendering environments with trained agents as animated gif")
     wz = WarehouseManagementVisualizer()
     wz.animate_eps(states, "ippo_ff_warehouse_management.gif")
