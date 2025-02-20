@@ -105,7 +105,6 @@ This script attempts to launch each algorithm across multiple environments. If i
 ### 4) Run Evaluation
 
 <div class="collage">
-
     <div class="column" align="center">
         <div class="row" align="center">
             <img src="https://github.com/julien6/MOISE-MARL/blob/main/JaxMARL/docs/imgs/cramped_room.gif?raw=true" alt="Overcooked" width="20%">
@@ -118,10 +117,13 @@ This script attempts to launch each algorithm across multiple environments. If i
             <img src="https://github.com/julien6/MOISE-MARL/blob/main/JaxMARL/docs/imgs/smax.gif?raw=true" alt="SMAX" width="20%">
         </div>
     </div>
-
 </div>
 
-*Examples of rendered environments as animated GIFs (adapted from [JaxMARL](https://github.com/FLAIROx/JaxMARL))*
+<p align="center">
+<em>Examples of rendered environments as animated GIFs (adapted from [JaxMARL](https://github.com/FLAIROx/JaxMARL))</em>
+</p>
+
+
 
 ---
 
