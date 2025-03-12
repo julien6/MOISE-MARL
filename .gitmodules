@@ -1,0 +1,15 @@
+[submodule "jaxmarl_moise_marl/JaxMARL"]
+	path = jaxmarl_moise_marl/JaxMARL
+	url = https://github.com/julien6/JaxMARL.git
+[submodule "marllib_moise_marl/MARLlib"]
+	path = marllib_moise_marl/MARLlib
+	url = https://github.com/julien6/MARLlib.git
+[submodule "marllib_moise_marl/OMARLE"]
+	path = marllib_moise_marl/OMARLE
+	url = https://github.com/julien6/OMARLE.git
+[submodule "marllib_moise_marl/overcooked_ai"]
+	path = marllib_moise_marl/overcooked_ai
+	url = https://github.com/julien6/overcooked_ai.git
+[submodule "marllib_moise_marl/CybORG"]
+	path = marllib_moise_marl/CybORG
+	url = https://github.com/julien6/CybORG.git

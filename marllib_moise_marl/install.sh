@@ -36,8 +36,8 @@ fi
 
 source ~/miniconda3/etc/profile.d/conda.sh
 
-conda create -n marllib python=3.8 -y
-conda activate marllib
+conda create -n mma python=3.8 -y
+conda activate mma
 git clone https://github.com/julien6/MARLlib.git
 cd MARLlib
 pip install --upgrade pip
