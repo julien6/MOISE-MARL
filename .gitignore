@@ -16,3 +16,4 @@ wandb/
 outputs/
 models/
 checkpoint
+marllib_moise_marl/exp_results/*

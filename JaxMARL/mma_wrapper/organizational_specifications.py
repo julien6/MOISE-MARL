@@ -1,6 +1,6 @@
 
 org_spec = {
-    "structural": {
+    "structural": { 
         "roles": {
             "coach": "// TP or custom logic...",
             "player": "// TP or custom logic...",
