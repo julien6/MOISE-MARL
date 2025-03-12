@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 
+git config --global http.postBuffer 524288000
+git config --global http.lowSpeedLimit 0
+git config --global http.lowSpeedTime 999999
+git config --global core.compression 0
+
 # Check if 'conda' command exists
 if [ -d "$HOME/miniconda" ] || [ -d "$HOME/miniconda3" ] ; then
   echo "Miniconda is already installed on your system."
@@ -34,7 +39,7 @@ else
 
 fi
 
-source ~/miniconda3/etc/profile.d/conda.sh
+source ~/miniconda/etc/profile.d/conda.sh
 
 conda create -n mma python=3.8 -y
 conda activate mma
@@ -80,4 +85,9 @@ cd ..
 # Install CybORG
 git clone https://github.com/julien6/CybORG.git
 cd CybORG
+pip install -e .
+
+cd ..
+
+cd mma
 pip install -e .
