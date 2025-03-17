@@ -68,10 +68,6 @@ class mpe_label_manager(label_manager):
         return self.action_decode[action]
 
 
-def dist(pos1, pos2) -> float:
-    return math.sqrt((pos1[0]-pos2[0])**2 + (pos1[1]-pos2[1])**2)
-
-
 def leader_adversary_fun(trajectory: trajectory, observation: label, agent_name: str, label_manager: label_manager) -> label:
     # print("Leader adversary")
     data = label_manager.one_hot_decode_observation(
@@ -88,8 +84,6 @@ def leader_adversary_fun(trajectory: trajectory, observation: label, agent_name:
         min_dist = 10000
         min_agent = None
         for good_agent in ["agent_0", "agent_1"]:
-            # d = dist(
-            #     other_agent_rel_positions[adversary], other_agent_rel_positions[good_agent])
             d = math.sqrt(
                 (other_agent_rel_positions[good_agent][0])**2 + (other_agent_rel_positions[good_agent][1])**2)
             if d < min_dist:

@@ -1,12 +1,7 @@
 from marllib import marl
 
 # prepare env
-# env = marl.make_env(environment_name="mpe", map_name="simple_spread")
-# env = marl.make_env(environment_name="mcy", map_name="moving_company")
-# env = marl.make_env(environment_name="wmt", map_name="warehouse_management")
-# env = marl.make_env(environment_name="overcooked", map_name="asymmetric_advantages")
-env = marl.make_env(environment_name="cyborg", map_name="cage3")
-
+env = marl.make_env(environment_name="overcooked", map_name="asymmetric_advantages")
 
 # initialize algorithm with appointed hyper-parameters
 # mappo = marl.algos.mappo(hyperparam_source="mpe")
