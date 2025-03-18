@@ -1,5 +1,6 @@
 import math
 import gym
+import random
 import numpy as np
 from random import randint
 from typing import Any, List
@@ -76,27 +77,115 @@ def primary_fun(trajectory: trajectory, observation: label, agent_name: str, lab
     data = label_manager.one_hot_decode_observation(
         observation=observation, agent=agent_name)
     x_agent, y_agent = data.shape[0]//2, data.shape[1]//2
-    print(agent_name, ": ", data[x_agent, y_agent])
-    for x in range(0, data.shape[0]):
-        for y in range(0, data.shape[1]):
-            if data[x_agent, y_agent] == "agent":
-                return randint(2, 4)
-            if "input_with_object" == data[x, y] and data[x_agent, y_agent] == "agent":
-                dx, dy = x - x_agent, y - y_agent
-                if dx == 1 or dy == 1:
-                    return 5
-                else:
-                    if abs(dx) > abs(dy):
-                        return 4 if dx > 0 else 3
+
+    if data[x_agent, y_agent] == "agent_with_primary":
+        for x in range(0, data.shape[0]):
+            for y in range(0, data.shape[1]):
+                if "empty_input_craft" == data[x, y]:
+                    dx, dy = x - x_agent, y - y_agent
+                    print(dx, " ", dy)
+                    if abs(dx) == 0 and abs(dy) == 1:
+                        print(agent_name, ": drop")
+                        return 6
+                    if abs(dx) >= abs(dy):
+                        if dx < 0:
+                            print(agent_name, ": down")
+                            return 1
+                        if dx > 0:
+                            print(agent_name, ": up")
+                            return 2
                     else:
-                        return 2 if dy > 0 else 1
+                        if dy < 0:
+                            print(agent_name, ": left")
+                            return 3
+                        if dy > 0:
+                            print(agent_name, ": right")
+                            return 4
+        return 3
+    if data[x_agent, y_agent] == "agent":
+        for x in range(0, data.shape[0]):
+            for y in range(0, data.shape[1]):
+                if "input_with_object" == data[x, y]:
+                    dx, dy = x - x_agent, y - y_agent
+                    print(dx, " ", dy)
+                    if abs(dx) == 0 and abs(dy) == 1:
+                        print(agent_name, ": pick")
+                        return 5
+                    if abs(dx) >= abs(dy):
+                        if dx < 0:
+                            print(agent_name, ": down")
+                            return 1
+                        if dx > 0:
+                            print(agent_name, ": up")
+                            return 2
+                    else:
+                        if dy < 0:
+                            print(agent_name, ": left")
+                            return 3
+                        if dy > 0:
+                            print(agent_name, ": right")
+                            return 4
+        return 3
+
     return 0
 
 
 def secondary_fun(trajectory: trajectory, observation: label, agent_name: str, label_manager: label_manager) -> label:
     data = label_manager.one_hot_decode_observation(
         observation=observation, agent=agent_name)
-    return randint(0, 7)
+    x_agent, y_agent = data.shape[0]//2, data.shape[1]//2
+    if data[x_agent, y_agent] == "agent_with_secondary":
+        for x in range(0, data.shape[0]):
+            for y in range(0, data.shape[1]):
+                if "empty_output" == data[x, y]:
+                    dx, dy = x - x_agent, y - y_agent
+                    print(dx, " ", dy)
+                    if abs(dx) == 0 and abs(dy) == 1:
+                        print(agent_name, ": drop")
+                        return 6
+                    if abs(dx) >= abs(dy):
+                        if dx < 0:
+                            print(agent_name, ": down")
+                            return 1
+                        if dx > 0:
+                            print(agent_name, ": up")
+                            return 2
+                    else:
+                        if dy < 0:
+                            print(agent_name, ": left")
+                            return 3
+                        if dy > 0:
+                            print(agent_name, ": right")
+                            return 4
+        return 4
+    if data[x_agent, y_agent] == "agent":
+        for x in range(0, data.shape[0]):
+            for y in range(0, data.shape[1]):
+                if "output_craft_with_object" == data[x, y]:
+                    dx, dy = x - x_agent, y - y_agent
+                    print(dx, " ", dy)
+                    if abs(dx) == 0 and abs(dy) == 1:
+                        print(agent_name, ": pick")
+                        return 5
+                    if abs(dx) >= abs(dy):
+                        if dx < 0:
+                            print(agent_name, ": down")
+                            return 1
+                        if dx > 0:
+                            print(agent_name, ": up")
+                            return 2
+                    else:
+                        if dy < 0:
+                            print(agent_name, ": left")
+                            return 3
+                        if dy > 0:
+                            print(agent_name, ": right")
+                            return 4
+        if randint(0,100) < 60:
+            return 4
+        else:
+            return randint(1,4)
+    return 0
 
 
 _env = RLlibWMT({"map_name": "warehouse_management"})
