@@ -1,5 +1,6 @@
 import math
 import gym
+import random
 import numpy as np
 from random import randint
 from typing import Any, List
@@ -120,18 +121,37 @@ class overcooked_label_manager(label_manager):
         return self.action_decode[action]
 
 
-def go_towards(dx, dy):
+def go_towards(dx, dy, facing_walls):
+    actions = {}
     if abs(dx) >= abs(dy):
         if dx < 0:
-            return "left"
+            actions["left"] = False
+            if facing_walls[3] == 0:
+                actions["left"] = True
         if dx > 0:
-            return "right"
-    else:
+            actions["right"] = False
+            if facing_walls[2] == 0:
+                actions["right"] = True
+    if abs(dx) <= abs(dy):
         if dy < 0:
-            return "up"
+            actions["up"] = False
+            if facing_walls[0] == 0:
+                actions["up"] = True
         if dy > 0:
-            return "down"
-
+            actions["down"] = False
+            if facing_walls[1] == 0:
+                actions["down"] = True
+    if len(actions.keys()) == 1 and list(actions.values())[0] == False:
+        if (abs(dx) == 1 and abs(dy) == 0) or (abs(dx) == 0 and abs(dy) == 1):
+            return list(actions.keys())[0]
+        if (abs(dx) > 1 or abs(dy) > 1):
+            directions = ["up", "down", "left", "right"]
+            free_dir = [directions[index] for index, blocked_wall in enumerate(facing_walls) if blocked_wall == 0]
+            return random.choice(free_dir)
+    else:
+        for action, free in actions.items():
+            if free:
+                return action
 
 ori = {
     "up": np.asarray([1, 0, 0, 0]),
@@ -140,20 +160,39 @@ ori = {
     "left": np.asarray([0, 0, 0, 1])
 }
 
-def go_and_interact(dist, orientation):
+
+def go_and_interact(dist, orientation, facing_walls):
     if abs(dist[0]) > 0 or abs(dist[1]) > 0:
-        towards_item = go_towards(dist[0], dist[1])
-        print("------------->>>>> ", (ori[towards_item] == orientation).all(), " >>>>> ", towards_item)
-        print("------------->>>>> ", ori[towards_item], " || ", orientation)
+        towards_item = go_towards(dist[0], dist[1], facing_walls)
         if ((abs(dist[0]) == 0 and abs(dist[1]) == 1) or (abs(dist[0]) == 1 and abs(dist[1]) == 0)) and (ori[towards_item] == orientation).all():
             return "interact"
         return towards_item
     return None
 
+
+def is_next_and_facing_to(dist, orientation):
+    towards_item = go_towards(dist[0], dist[1])
+    return ((abs(dist[0]) == 0 and abs(dist[1]) == 1) or (abs(dist[0]) == 1 and abs(dist[1]) == 0)) and (ori[towards_item] == orientation).all()
+
+
 def primary_fun(trajectory: trajectory, observation: label, agent_name: str, label_manager: label_manager) -> label:
     data = label_manager.one_hot_decode_observation(
         observation=observation, agent=agent_name)
-    print(agent_name, "'s observation: ", data)
+
+    # |-----------> x
+    # |
+    # |
+    # |
+    # V
+    # y
+    #
+    #
+    # [
+    #  X   Onion
+    #  X   Soup
+    #  X   Dish
+    #  X   Tomato
+    # ]
 
     orientation = data["orientation"]
     held_object = data["held_object"]
@@ -161,6 +200,9 @@ def primary_fun(trajectory: trajectory, observation: label, agent_name: str, lab
     dist_soup = data["dist_soup"]
     dist_dish = data["dist_dish"]
     dist_serving = data["dist_serving"]
+    facing_walls = [data["wall_0"], data["wall_1"],
+                    data["wall_2"], data["wall_3"]]
+    dist_empty_counter = data["dist_empty_counter"]
 
     pot_0_is_empty = data[f"pot_0_is_empty"]
     pot_0_is_full = data[f"pot_0_is_full"]
@@ -170,38 +212,63 @@ def primary_fun(trajectory: trajectory, observation: label, agent_name: str, lab
     pot_0_cook_time = data[f"pot_0_cook_time"]
     pot_0_dist = data[f"pot_0_dist"]
 
-    if (pot_0_is_ready == 1 or pot_0_is_cooking == 1) and np.all(held_object == 0):
-        action = go_and_interact(dist_dish, orientation)
-        if action is not None:
-            print("àààààààààààààààààààààààààààà")
-            return label_manager.one_hot_encode_action(action)
-        else:
-            return label_manager.one_hot_encode_action("nothing")
-    else:
-        if pot_0_is_full == 1 and pot_0_is_cooking == 0:
-            return label_manager.one_hot_encode_action("interact")
+    pot_1_is_empty = data[f"pot_1_is_empty"]
+    pot_1_is_full = data[f"pot_1_is_full"]
+    pot_1_is_cooking = data[f"pot_1_is_cooking"]
+    pot_1_is_ready = data[f"pot_1_is_ready"]
+    pot_1_num_onions = data[f"pot_1_num_onions"]
+    pot_1_cook_time = data[f"pot_1_cook_time"]
+    pot_1_dist = data[f"pot_1_dist"]
 
-        action = go_and_interact(dist_onion, orientation)
-        if action is not None:
-            return label_manager.one_hot_encode_action(action)
-
-        action = go_and_interact(pot_0_dist, orientation)
+    # If it has a soup then bring it to the serving zone
+    if held_object[1] == 1:
+        action = go_and_interact(dist_empty_counter, orientation, facing_walls)
         if action is not None:
             return label_manager.one_hot_encode_action(action)
 
-    absolute_position = data["absolute_position"]
-    #               onion
-    # held_objects [0,      0,      0,      0]
+    # If the agent has a dish plate and one of the pots is ready, then go to the concerned pot and take a soup
+    if held_object[2] == 1:
+        if pot_0_is_ready == 1:
+            action = go_and_interact(pot_0_dist, orientation, facing_walls)
+            if action is not None:
+                return label_manager.one_hot_encode_action(action)
+        if pot_1_is_ready == 1:
+            action = go_and_interact(pot_1_dist, orientation, facing_walls)
+            if action is not None:
+                return label_manager.one_hot_encode_action(action)
 
-    # go and interact
+    # If any pot is cooking or has finished cooking and the agent has nothing in hands, then take a dish plate
+    if ((pot_1_is_ready == 1 or pot_1_is_cooking == 1) and (pot_0_is_ready == 1 or pot_0_is_cooking == 1)) and np.all(held_object == 0):
+        action = go_and_interact(dist_dish, orientation, facing_walls)
+        if action is not None:
+            return label_manager.one_hot_encode_action(action)
 
-    return label_manager.one_hot_encode_action("nothing")
+    # If pot 0 is full and non-cooking and if agent has nothing in hands, then go and interact to launch the cooking
+    if (pot_0_is_full == 1 and pot_0_is_cooking == 0 and pot_0_is_ready == 0) and np.all(held_object == 0):
+        action = go_and_interact(pot_0_dist, orientation, facing_walls)
+        if action is not None:
+            return label_manager.one_hot_encode_action(action)
+    # If pot 1 is full and non-cooking and if agent has nothing in hands, then go and interact to launch the cooking
+    if (pot_1_is_full == 1 and pot_1_is_cooking == 0 and pot_1_is_ready == 0) and np.all(held_object == 0):
+        action = go_and_interact(pot_1_dist, orientation, facing_walls)
+        if action is not None:
+            return label_manager.one_hot_encode_action(action)
 
-
-def secondary_fun(trajectory: trajectory, observation: label, agent_name: str, label_manager: label_manager) -> label:
-    data = label_manager.one_hot_decode_observation(
-        observation=observation, agent=agent_name)
-    # print("\n", agent_name, "'s observation: ", data)
+    # If there is a non full pot, then take an onion and bring it to a pot
+    if ((pot_0_is_empty == 1 or pot_0_is_full == 0) and pot_0_is_cooking == 0 and pot_0_is_ready == 0) or ((pot_1_is_empty == 1 or pot_1_is_full == 0) and pot_1_is_cooking == 0 and pot_1_is_ready == 0):
+        if held_object[0] == 0 and held_object[2] == 0 and held_object[1] == 0:
+            action = go_and_interact(dist_onion, orientation, facing_walls)
+            if action is not None:
+                return label_manager.one_hot_encode_action(action)
+        if held_object[0] == 1 and held_object[2] == 0 and held_object[1] == 0:
+            if ((pot_0_is_empty == 1 or pot_0_is_full == 0) and pot_0_is_cooking == 0 and pot_0_is_ready == 0):
+                action = go_and_interact(pot_0_dist, orientation, facing_walls)
+                if action is not None:
+                    return label_manager.one_hot_encode_action(action)
+            if ((pot_1_is_empty == 1 or pot_1_is_full == 0) and pot_1_is_cooking == 0 and pot_1_is_ready == 0):
+                action = go_and_interact(pot_1_dist, orientation, facing_walls)
+                if action is not None:
+                    return label_manager.one_hot_encode_action(action)
     return label_manager.one_hot_encode_action("nothing")
 
 
@@ -211,7 +278,7 @@ ao_model = organizational_model(
     structural_specifications(
         roles={
             "role_primary": role_logic(label_manager=oa_label_mngr).registrer_script_rule(primary_fun),
-            "role_secondary": role_logic(label_manager=oa_label_mngr).registrer_script_rule(secondary_fun)},
+            "role_secondary": role_logic(label_manager=oa_label_mngr).registrer_script_rule(primary_fun)},
         role_inheritance_relations={}, root_groups={}),
     functional_specifications=functional_specifications(
         goals={}, social_scheme={}, mission_preferences=[]),
