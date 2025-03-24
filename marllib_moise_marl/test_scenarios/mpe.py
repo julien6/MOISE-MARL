@@ -180,7 +180,8 @@ mappo.render(env, model,
              restore_path={
                  'params_path': "./exp_results/mappo_mlp_simple_world_comm_copy/MAPPOTrainer_mpe_simple_world_comm_f5f5f_00000_0_2025-03-09_18-28-48/params.json",
                  'model_path': "./exp_results/mappo_mlp_simple_world_comm_copy/MAPPOTrainer_mpe_simple_world_comm_f5f5f_00000_0_2025-03-09_18-28-48/checkpoint_000020/checkpoint-20",
-                 'render': True
+                #  'record_env': True,
+                 'render_env': True
              },
              local_mode=True,
              share_policy="group",

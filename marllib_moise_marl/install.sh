@@ -43,6 +43,15 @@ source ~/miniconda/etc/profile.d/conda.sh
 
 conda create -n mma python=3.8 -y
 conda activate mma
+
+git clone https://github.com/julien6/PettingZoo.git
+
+cd PettingZoo
+
+pip install -e .
+
+cd ..
+
 git clone https://github.com/julien6/MARLlib.git
 cd MARLlib
 pip install --upgrade pip
@@ -53,7 +62,7 @@ pip install -r requirements.txt
 pip install "gym>=0.20.0,<0.22.0"
 
 pip install numpy==1.20.3
-pip install pettingzoo==1.12.0
+# pip install pettingzoo==1.12.0
 pip install pyglet==1.5.11
 
 conda install -c conda-forge libstdcxx-ng -y

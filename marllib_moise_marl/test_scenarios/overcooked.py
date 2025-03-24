@@ -311,7 +311,9 @@ mappo.render(env, model,
              restore_path={
                  'params_path': "./exp_results/mappo_mlp_asymmetric_advantages_copy/MAPPOTrainer_overcooked_asymmetric_advantages_08cc3_00000_0_2025-03-19_10-25-01/params.json",
                  'model_path': "./exp_results/mappo_mlp_asymmetric_advantages_copy/MAPPOTrainer_overcooked_asymmetric_advantages_08cc3_00000_0_2025-03-19_10-25-01/checkpoint_000020/checkpoint-20",
-                 'render': True
+                #  'render': True,
+                 'record_env': True,
+                #  'render_env': True
              },
              local_mode=True,
              share_policy="group",

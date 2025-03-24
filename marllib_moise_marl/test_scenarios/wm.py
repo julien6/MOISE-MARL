@@ -78,8 +78,8 @@ def primary_fun(trajectory: trajectory, observation: label, agent_name: str, lab
         observation=observation, agent=agent_name)
     x_agent, y_agent = data.shape[0]//2, data.shape[1]//2
 
-    if randint(0,100) < 20:
-        return randint(1,4)
+    if randint(0, 100) < 20:
+        return randint(1, 4)
 
     if data[x_agent, y_agent] == "agent_with_primary":
         for x in range(0, data.shape[0]):
@@ -133,19 +133,18 @@ def primary_fun(trajectory: trajectory, observation: label, agent_name: str, lab
     return 0
 
 
-
 def secondary_fun(trajectory: trajectory, observation: label, agent_name: str, label_manager: label_manager) -> label:
     data = label_manager.one_hot_decode_observation(
         observation=observation, agent=agent_name)
 
     def block_around(x, y, grid, block):
-        directions = [(1,0),(0,1),(0,-1),(-1,0)]
+        directions = [(1, 0), (0, 1), (0, -1), (-1, 0)]
         for x_dir, y_dir in directions:
-            if(grid[x+x_dir][y+y_dir] == block):
+            if (grid[x+x_dir][y+y_dir] == block):
                 return True
 
-    if randint(0,100) < 40:
-        return randint(1,4)
+    if randint(0, 100) < 40:
+        return randint(1, 4)
 
     x_agent, y_agent = data.shape[0]//2, data.shape[1]//2
     if data[x_agent, y_agent] == "agent_with_secondary":
@@ -196,7 +195,7 @@ def secondary_fun(trajectory: trajectory, observation: label, agent_name: str, l
                         if dy > 0:
                             # print(agent_name, ": right")
                             return 4
-        return random.choice([2,4]) if randint(0,100) < 70 else randint(1,4)
+        return random.choice([2, 4]) if randint(0, 100) < 70 else randint(1, 4)
     return 0
 
 
@@ -241,7 +240,9 @@ mappo.render(env, model,
              restore_path={
                  'params_path': "./exp_results/mappo_mlp_warehouse_management_copy/MAPPOTrainer_wmt_warehouse_management_3846d_00000_0_2025-03-18_14-09-27/params.json",
                  'model_path': "./exp_results/mappo_mlp_warehouse_management_copy/MAPPOTrainer_wmt_warehouse_management_3846d_00000_0_2025-03-18_14-09-27/checkpoint_000020/checkpoint-20",
-                 'render': True
+                #  'render': True,
+                #  'record_env': True,
+                 'render_env': True
              },
              local_mode=True,
              share_policy="group",

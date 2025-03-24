@@ -82,12 +82,15 @@ mappo.render(env, model,
              restore_path={
                  'params_path': "./exp_results/mappo_mlp_cage3_copy/MAPPOTrainer_cyborg_cage3_313ec_00000_0_2025-03-23_17-30-54/params.json",
                  'model_path': "./exp_results/mappo_mlp_cage3_copy/MAPPOTrainer_cyborg_cage3_313ec_00000_0_2025-03-23_17-30-54/checkpoint_000020/checkpoint-20",
-                 'render': True
+                 'render': True,
+                #  'record_env': True,
+                #  'render_env': True
              },
              local_mode=True,
              share_policy="group",
              stop_timesteps=1,
              timesteps_total=1,
+             stop_reward=10,
              checkpoint_freq=1,
              stop_iters=1,
              checkpoint_end=True)

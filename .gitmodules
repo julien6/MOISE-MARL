@@ -13,3 +13,6 @@
 [submodule "marllib_moise_marl/CybORG"]
 	path = marllib_moise_marl/CybORG
 	url = https://github.com/julien6/CybORG.git
+[submodule "marllib_moise_marl/PettingZoo"]
+	path = marllib_moise_marl/PettingZoo
+	url = https://github.com/julien6/PettingZoo.git
