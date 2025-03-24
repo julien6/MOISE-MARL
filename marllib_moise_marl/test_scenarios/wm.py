@@ -86,23 +86,23 @@ def primary_fun(trajectory: trajectory, observation: label, agent_name: str, lab
             for y in range(0, data.shape[1]):
                 if "empty_input_craft" == data[x, y]:
                     dx, dy = x - x_agent, y - y_agent
-                    print(dx, " ", dy)
+                    # print(dx, " ", dy)
                     if abs(dx) == 0 and abs(dy) == 1:
-                        print(agent_name, ": drop")
+                        # print(agent_name, ": drop")
                         return 6
                     if abs(dx) >= abs(dy):
                         if dx < 0:
-                            print(agent_name, ": down")
+                            # print(agent_name, ": down")
                             return 1
                         if dx > 0:
-                            print(agent_name, ": up")
+                            # print(agent_name, ": up")
                             return 2
                     else:
                         if dy < 0:
-                            print(agent_name, ": left")
+                            # print(agent_name, ": left")
                             return 3
                         if dy > 0:
-                            print(agent_name, ": right")
+                            # print(agent_name, ": right")
                             return 4
         return 3
     if data[x_agent, y_agent] == "agent":
@@ -110,23 +110,23 @@ def primary_fun(trajectory: trajectory, observation: label, agent_name: str, lab
             for y in range(0, data.shape[1]):
                 if "input_with_object" == data[x, y]:
                     dx, dy = x - x_agent, y - y_agent
-                    print(dx, " ", dy)
+                    # print(dx, " ", dy)
                     if abs(dx) == 0 and abs(dy) == 1:
-                        print(agent_name, ": pick")
+                        # print(agent_name, ": pick")
                         return 5
                     if abs(dx) >= abs(dy):
                         if dx < 0:
-                            print(agent_name, ": down")
+                            # print(agent_name, ": down")
                             return 1
                         if dx > 0:
-                            print(agent_name, ": up")
+                            # print(agent_name, ": up")
                             return 2
                     else:
                         if dy < 0:
-                            print(agent_name, ": left")
+                            # print(agent_name, ": left")
                             return 3
                         if dy > 0:
-                            print(agent_name, ": right")
+                            # print(agent_name, ": right")
                             return 4
         return 3
 
@@ -153,49 +153,48 @@ def secondary_fun(trajectory: trajectory, observation: label, agent_name: str, l
             for y in range(0, data.shape[1]):
                 if "empty_output" == data[x, y]:
                     dx, dy = x - x_agent, y - y_agent
-                    print(dx, " ", dy)
+                    # print(dx, " ", dy)
                     if abs(dx) == 0 and abs(dy) == 1:
-                        print(agent_name, ": drop")
+                        # print(agent_name, ": drop")
                         return 6
                     if abs(dx) >= abs(dy):
                         if dx < 0:
-                            print(agent_name, ": down")
+                            # print(agent_name, ": down")
                             return 1
                         if dx > 0:
-                            print(agent_name, ": up")
+                            # print(agent_name, ": up")
                             return 2
                     else:
                         if dy < 0:
-                            print(agent_name, ": left")
+                            # print(agent_name, ": left")
                             return 3
                         if dy > 0:
-                            print(agent_name, ": right")
+                            # print(agent_name, ": right")
                             return 4
         return 4
     if data[x_agent, y_agent] == "agent":
 
         if block_around(x_agent, y_agent, data, "output_craft_with_object"):
-            print(agent_name, ": pick")
             return 5
 
         for x in range(0, data.shape[0]):
             for y in range(0, data.shape[1]):
                 if "output_craft_with_object" == data[x, y]:
                     dx, dy = x - x_agent, y - y_agent
-                    print(dx, " ", dy)
+                    # print(dx, " ", dy)
                     if abs(dx) >= abs(dy):
                         if dx < 0:
-                            print(agent_name, ": down")
+                            # print(agent_name, ": down")
                             return 1
                         if dx > 0:
-                            print(agent_name, ": up")
+                            # print(agent_name, ": up")
                             return 2
                     else:
                         if dy < 0:
-                            print(agent_name, ": left")
+                            # print(agent_name, ": left")
                             return 3
                         if dy > 0:
-                            print(agent_name, ": right")
+                            # print(agent_name, ": right")
                             return 4
         return random.choice([2,4]) if randint(0,100) < 70 else randint(1,4)
     return 0
@@ -240,10 +239,14 @@ model = marl.build_model(
 # rendering
 mappo.render(env, model,
              restore_path={
-                 'params_path': "./exp_results/mappo_mlp_warehouse_management/MAPPOTrainer_wmt_warehouse_management_3846d_00000_0_2025-03-18_14-09-27/params.json",
-                 'model_path': "./exp_results/mappo_mlp_warehouse_management/MAPPOTrainer_wmt_warehouse_management_3846d_00000_0_2025-03-18_14-09-27/checkpoint_000020/checkpoint-20",
+                 'params_path': "./exp_results/mappo_mlp_warehouse_management_copy/MAPPOTrainer_wmt_warehouse_management_3846d_00000_0_2025-03-18_14-09-27/params.json",
+                 'model_path': "./exp_results/mappo_mlp_warehouse_management_copy/MAPPOTrainer_wmt_warehouse_management_3846d_00000_0_2025-03-18_14-09-27/checkpoint_000020/checkpoint-20",
                  'render': True
              },
              local_mode=True,
              share_policy="group",
-             checkpoint_end=False)
+             stop_timesteps=100,
+             timesteps_total=100,
+             checkpoint_freq=1,
+             stop_iters=1,
+             checkpoint_end=True)

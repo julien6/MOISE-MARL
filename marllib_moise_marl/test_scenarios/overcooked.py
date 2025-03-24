@@ -315,4 +315,8 @@ mappo.render(env, model,
              },
              local_mode=True,
              share_policy="group",
-             checkpoint_end=False)
+             stop_timesteps=1,
+             timesteps_total=1,
+             checkpoint_freq=1,
+             stop_iters=1,
+             checkpoint_end=True)

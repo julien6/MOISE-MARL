@@ -11,6 +11,9 @@ class RLlibMMA_wrapper(MultiAgentEnv):
 
     def __init__(self, env: MultiAgentEnv, organizational_model: organizational_model = None, render_mode=None):
         self.env = env
+        self.metadata = env.metadata
+        self.metadata["render.modes"] = ['human', 'rgb_array']
+
         self.organizational_model = organizational_model
         self.last_observations = {}
         self.histories = {agent: [] for agent in self.agents}
