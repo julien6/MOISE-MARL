@@ -87,14 +87,14 @@ If the 'overcooked-ai' rendered interface is dislayed, then your installation is
 <div class="collage">
     <div class="column" align="center">
         <div class="row" align="center">
-            <img src="https://github.com/julien6/MOISE-MARL//home/soulej/Documents/MOISE-MARL/docs/images/overcooked.gif?raw=true" alt="Overcooked" width="20%">
-            <img src="https://raw.githubusercontent.com/FLAIROx/JaxMARL/refs/heads/main/docs/imgs/storm.gif" alt="STORM" width="20%">
-            <img src="https://github.com/julien6/MOISE-MARL//home/soulej/Documents/MOISE-MARL/docs/images/wm.gif?raw=true" alt="Warehouse Management" width="20%">
+            <img src="https://raw.githubusercontent.com/julien6/MOISE-MARL/refs/heads/main/docs/images/overcooked.gif?raw=true" alt="Overcooked" width="45%">
+            <img src="https://raw.githubusercontent.com/FLAIROx/JaxMARL/refs/heads/main/docs/imgs/storm.gif" alt="STORM" width="25%">
+            <img src="https://raw.githubusercontent.com/julien6/MOISE-MARL/refs/heads/main/docs/images/wm.gif?raw=true" alt="Warehouse Management" width="25%">
         </div>
         <div class="row" align="center">
-            <img src="https://github.com/julien6/MOISE-MARL//home/soulej/Documents/MOISE-MARL/docs/images/mpe.gif?raw=true" alt="MPE" width="20%">
-            <img src="https://github.com/julien6/MOISE-MARL//home/soulej/Documents/MOISE-MARL/docs/images/cyborg.gif?raw=true" alt="CybORG" width="20%">
-            <img src="https://raw.githubusercontent.com/FLAIROx/JaxMARL/refs/heads/main/docs/imgs/smax.gif" alt="SMAX" width="20%">
+            <img src="https://raw.githubusercontent.com/julien6/MOISE-MARL/refs/heads/main/docs/images/mpe.gif?raw=true" alt="MPE" width="25%">
+            <img src="https://raw.githubusercontent.com/julien6/MOISE-MARL/refs/heads/main/docs/images/cyborg.gif?raw=true" alt="CybORG" width="25%">
+            <img src="https://raw.githubusercontent.com/FLAIROx/JaxMARL/refs/heads/main/docs/imgs/smax.gif" alt="SMAX" width="25%">
         </div>
     </div>
 </div>
