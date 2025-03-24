@@ -45,44 +45,16 @@ We employ [CleanRL](https://docs.cleanrl.dev/) implementations of MARL algorithm
 
 ## Installation 🧗
 
-### 1) Install a virtual Python environment
-
-Make sure you have a valid Conda installation. To install Miniconda (used in our experiments), run:
-
-```bash
-curl -o Miniconda.sh https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
-chmod +x Miniconda.sh
-./Miniconda.sh -b -p $HOME/miniconda
-rm Miniconda.sh
-export PATH="$HOME/miniconda/bin:$PATH"
-echo 'export PATH="$HOME/miniconda/bin:$PATH"' >> ~/.bashrc
-source ~/.bashrc
-echo "Miniconda installed successfully."
-source ~/miniconda/etc/profile.d/conda.sh
-```
-
-Create and activate the Conda environment:
-
-```bash
-conda create -n moise-marl python=3.10
-conda activate moise-marl
-```
-
-Then clone the repository:
-
-```bash
-git clone https://github.com/julien6/MOISE-MARL.git && cd MOISE-MARL
-```
-
-### 2.1) Install the **MARLlib** version of MOISE+MARL
+### 1) Install the **MARLlib** version of MOISE+MARL
 
 To install dependencies for both MARLlib algorithms and PettingZoo environments:
 
 ```bash
-pip install -e .[marllib]
+cd marllib_moise_marl
+./install.sh
 ```
 
-### 2.2) [Work in Progress] Install the **JaxMARL** version of MOISE+MARL
+### 2) [Work in Progress] Install the **JaxMARL** version of MOISE+MARL
 
 To install dependencies for JaxMARL-based algorithms and environments:
 
@@ -94,97 +66,175 @@ If you encounter JAX or JaxMARL-specific issues, please ensure a proper JaxMARL 
 
 ### 3) Verify the Installation
 
-Run:
+Check you are able to activate the ```mma``` conda environment typing:
 
-```bash
-./check_installation.sh
+```
+source ~/miniconda/etc/profile.d/conda.sh
+conda activate mma
 ```
 
-This script attempts to launch each algorithm across multiple environments. If it completes without errors and displays **"All OK"**, the installation is successful.
+Then, from the MOISE+MARL project root, enter:
+
+```
+cd marllib_moise_marl/test_scenarios/
+clear ; ./clean.sh ; python overcooked.py
+```
+
+If the 'overcooked-ai' rendered interface is dislayed, then your installation is likely completed.
 
 ### 4) Run Evaluation
 
 <div class="collage">
     <div class="column" align="center">
         <div class="row" align="center">
-            <img src="https://github.com/julien6/MOISE-MARL/blob/main/JaxMARL/docs/imgs/cramped_room.gif?raw=true" alt="Overcooked" width="20%">
-            <img src="https://github.com/julien6/MOISE-MARL/blob/main/JaxMARL/docs/imgs/storm.gif?raw=true" alt="STORM" width="20%">
-            <img src="https://github.com/julien6/MOISE-MARL/blob/main/JaxMARL/docs/imgs/warehouse_management.gif?raw=true" alt="Warehouse Management" width="20%">
+            <img src="https://github.com/julien6/MOISE-MARL//home/soulej/Documents/MOISE-MARL/docs/images/overcooked.gif?raw=true" alt="Overcooked" width="20%">
+            <img src="https://raw.githubusercontent.com/FLAIROx/JaxMARL/refs/heads/main/docs/imgs/storm.gif" alt="STORM" width="20%">
+            <img src="https://github.com/julien6/MOISE-MARL//home/soulej/Documents/MOISE-MARL/docs/images/wm.gif?raw=true" alt="Warehouse Management" width="20%">
         </div>
         <div class="row" align="center">
-            <img src="https://github.com/julien6/MOISE-MARL/blob/main/JaxMARL/docs/imgs/qmix_MPE_simple_tag_v3.gif?raw=true" alt="MPE" width="20%">
-            <img src="https://github.com/julien6/MOISE-MARL/blob/main/JaxMARL/docs/imgs/jaxnav-ma.gif?raw=true" alt="JaxNav" width="20%">
-            <img src="https://github.com/julien6/MOISE-MARL/blob/main/JaxMARL/docs/imgs/smax.gif?raw=true" alt="SMAX" width="20%">
+            <img src="https://github.com/julien6/MOISE-MARL//home/soulej/Documents/MOISE-MARL/docs/images/mpe.gif?raw=true" alt="MPE" width="20%">
+            <img src="https://github.com/julien6/MOISE-MARL//home/soulej/Documents/MOISE-MARL/docs/images/cyborg.gif?raw=true" alt="CybORG" width="20%">
+            <img src="https://raw.githubusercontent.com/FLAIROx/JaxMARL/refs/heads/main/docs/imgs/smax.gif" alt="SMAX" width="20%">
         </div>
     </div>
 </div>
 
 <p align="center">
-<em>Examples of rendered environments as animated GIFs (adapted from [JaxMARL](https://github.com/FLAIROx/JaxMARL))</em>
+<em>Examples of rendered environments as animated GIFs (some are adapted from [JaxMARL](https://github.com/FLAIROx/JaxMARL))</em>
 </p>
-
-
 
 ---
 
-To train and test a MARL algorithm on a specific environment, run:
-
-```bash
-./run <algorithm_name>_<environment_name>
-```
+To train and test a MARL algorithm on a specific environment, look at the `test_scenarios` folder containing typical examples showing how to use MMA for various environments.
 
 **Notes:**
 
 * Incomplete training sessions are automatically saved as checkpoints.
-* Checkpoints contain the latest training data (learning curves) as well as test data (rendered environments).
-* Use the `--resume` option to continue from the most recent checkpoint.
+* Checkpoints contain the latest training data
+* Recorded environments are saved as mp4 video if 'record_env' is enabled.
 
-For example, to train agents using **MAPPO** on the **Overcooked AI** environment:
+For example, to train/test agents using **MAPPO** on the **Overcooked AI** environment:
 
 ```bash
-./run mappo_overcooked_ai
+clear ; ./clean.sh ; python overcooked.py
 ```
 
 ---
 
 ### Basic MOISE+MARL API Usage for MARLlib 🖥️
 
-The **MOISE+MARL API (MMA)** provides an `mma_wrapper` environment wrapper that expects a parallel PettingZoo environment and a MOISE+MARL model ( `mm_model` ) with predefined organizational specifications (e.g., roles, goals, missions).
+The **MOISE+MARL API (MMA)** provides a series of classes and modified MARLlib functions. You can first implement a `label_manager` to handle observations and actions so you can conveniently use them to create roles and goals logics aftewards. Then, you can create an `organizational_model` that you can inject in the ```marllib.make_env``` function to make your organizational model effective during training.
 
-We have consolidated RLClean’s algorithms under MMA via the `make_train` function, which accepts any PettingZoo environment alongside a MARL algorithm configuration. Users can either supply a custom configuration or select one from our fine-tuned options in the `configuration/training/marl_env/` directory. We leverage [Hydra](https://github.com/facebookresearch/hydra) to handle checkpoints, saving them at specified intervals and resuming from the latest checkpoint until reaching the designated maximum number of training steps. Upon completion, `make_train` outputs a joint-policy model as well as training and testing statistics, all of which are recorded in the final checkpoint.
+MMA also features the **Trajectory-based Evaluation in MOISE+MARL (TEMM)** method, accessed via the `TEMM` class. This function takes a joint-policy model and produces a new MOISE+MARL model augmented with inferred organizational specifications with unsupervised learning techniques.
 
-MMA also features the **Trajectory-based Evaluation in MOISE+MARL (TEMM)** method, accessed via the `TEMM` function. This function takes a joint-policy model and produces a new MOISE+MARL model augmented with inferred organizational specifications. Internally, it employs unsupervised learning techniques—such as hierarchical clustering or k-means—to identify and characterize emergent behaviors as organizational constructs. The resulting figures and accompanying data are stored in a dedicated directory, assisting users in analyzing the learned organizational structures.
+Here is an environment-agnostic skeleton code showing the underlying principles of MMA.
 
 ```python 
-from pettingzoo.mpe import simple_world_comm_v3
-from moise_marl.make_train import make_train
-from moise_marl. TEMM import TEMM
-from moise_marl.configuration.training.marl_env import mappo_simple_world_comm
+from marllib import marl
+from mma_wrapper.label_manager import label_manager
+from mma_wrapper.organizational_model import deontic_specification, organizational_model, structural_specifications, functional_specifications, deontic_specifications, time_constraint_type
+from mma_wrapper.TEMM import TEMM
+from mma_wrapper.organizational_specification_logic import role_logic, goal_factory, role_factory, goal_logic
+from mma_wrapper.utils import label, observation, action, trajectory
+from simple_env import simple_env
 
-env = simple_world_comm_v3.env(render_mode="human")
+env = simple_env_v3.env(render_mode="human")
+
+# Implement the observation/action label manager
+
+class simple_label_manager(label_manager):
+
+    def one_hot_encode_observation(self, observation: Any, agent: str = None) -> 'observation':
+        ...
+        return one_hot_encoded_observation
+
+    def one_hot_decode_observation(self, observation: observation, agent: str = None) -> Any:
+        ...
+        return extracted_values
+
+    def one_hot_encode_action(self, action: Any, agent: str = None) -> action:
+        ...
+        return encoded_action
+
+    def one_hot_decode_action(self, action: action, agent: str = None) -> Any:
+        ...
+        return decoded_action
+    ...
+
+# Create some custom script rules
+
+def role1_fun(trajectory: trajectory, observation: label, agent_name: str, label_manager: label_manager) -> label:
+    # print("Leader adversary")
+    data = label_manager.one_hot_decode_observation(
+        observation=observation, agent=agent_name)
+    ...
+    return action
+
+def role2_fun(trajectory: trajectory, observation: label, agent_name: str, label_manager: label_manager) -> label:
+    # print("Leader adversary")
+    data = label_manager.one_hot_decode_observation(
+        observation=observation, agent=agent_name)
+    ...
+    return action
+
+simple_label_mngr = simple_label_manager() 
 
 # Define a MOISE+MARL model
+simple_model = organizational_model(
+    structural_specifications(
+        roles={
+            "role_1": role_logic(label_manager=simple_label_mngr).registrer_script_rule(role1_fun),
+            "role_2": role_logic(label_manager=simple_label_mngr).registrer_script_rule(role2_fun),
+            "role_3": role_logic(label_manager=simple_label_mngr).register_pattern_rule("[#any,#any](0,*)[o1,a1](1,1)", "o2", [("a1", 1), "a2", 1])
+            },
+        role_inheritance_relations={}, root_groups={}),
+    functional_specifications=functional_specifications(
+        goals={}, social_scheme={}, mission_preferences=[]),
+    deontic_specifications=deontic_specifications(permissions=[], obligations=[
+        deontic_specification("role_1", ["agent_0"], [], time_constraint_type.ANY),
+        deontic_specification("role_2", ["agent_1", "agent_2"], [], time_constraint_type.ANY)
+    ]))
 
-simple_model = mm_model(structural_specifications= {}, functional_specifications = {}, deontic_specifications= {})
+# prepare env
+env = marl.make_env(environment_name="mpe",
+                    map_name="simple_world_comm", organizational_model=simple_model)
 
-# Wrap the environment
+# initialize algorithm with appointed hyper-parameters
+# (here 'test' for debuging)
+mappo = marl.algos.mappo(hyperparam_source="test")
 
-env = mma_wrapper(env, simple_model)
+# build agent model based on env + algorithms + user preference
+model = marl.build_model(
+    env, mappo, {"core_arch": "mlp", "encode_layer": "128-256"})
 
-# Launch the training with given algorithm and training hyper-parameters
+# start training
+mappo.fit(env, model, stop={'episode_reward_mean': 6000, 'timesteps_total': 20000000}, local_mode=False, num_gpus=0, num_gpus_per_worker=0,
+          num_workers=1, share_policy='group', checkpoint_freq=20)
 
-policy_model, stats = make_train(env, mappo_simple_world_comm, resume_from_last_checkpoint=True)
-
-# Run the TEMM method to infer implicit organizational specifications
-
-inferred_model = TEMM(policy_model, output_directory="analysis_results")
-
+# rendering from given checkpoint
+mappo.render(env, model,
+             restore_path={
+                 'params_path': "./exp_results/.../params.json",
+                 'model_path': "./exp_results/.../checkpoint_000020/checkpoint-20",
+                 # generates rendered mp4 videos
+                 'record_env': True,
+                 # runs the default rendering mechanism
+                 'render_env': True
+             },
+             local_mode=True,
+             share_policy="group",
+             stop_timesteps=1,
+             timesteps_total=1,
+             checkpoint_freq=1,
+             stop_iters=1,
+             checkpoint_end=True)
 ```
 
 <h2 name="cite" id="cite">Citing MOISE+MARL📜 </h2>
 If you use MOISE+MARL in your work, please cite us as follows:
 
 ```
+
 @inproceedings{soule2024moise_marl, 
   title     = {An Organizationally-Oriented Approach to Enhancing Explainability and Control in Multi-Agent Reinforcement Learning}, 
   author    = {Soulé, Julien and Jamont, Jean-Paul and Occello, Michel and Traonouez, Louis-Marie and Théron, Paul}, 

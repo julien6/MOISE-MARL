@@ -240,7 +240,6 @@ mappo.render(env, model,
              restore_path={
                  'params_path': "./exp_results/mappo_mlp_warehouse_management_copy/MAPPOTrainer_wmt_warehouse_management_3846d_00000_0_2025-03-18_14-09-27/params.json",
                  'model_path': "./exp_results/mappo_mlp_warehouse_management_copy/MAPPOTrainer_wmt_warehouse_management_3846d_00000_0_2025-03-18_14-09-27/checkpoint_000020/checkpoint-20",
-                #  'render': True,
                 #  'record_env': True,
                  'render_env': True
              },
