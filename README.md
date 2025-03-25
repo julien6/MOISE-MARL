@@ -93,7 +93,7 @@ If the 'overcooked-ai' rendered interface is dislayed, then your installation is
         </div>
         <div class="row" align="center">
             <img src="https://raw.githubusercontent.com/julien6/MOISE-MARL/refs/heads/main/docs/images/mpe.gif?raw=true" alt="MPE" width="25%">
-            <img src="https://raw.githubusercontent.com/julien6/MOISE-MARL/refs/heads/main/docs/images/cyborg.gif?raw=true" alt="CybORG" width="25%">
+            <img src="https://raw.githubusercontent.com/julien6/MOISE-MARL/refs/heads/main/docs/images/cyborg.gif?raw=true" alt="CybORG" width="28.3%">
             <img src="https://raw.githubusercontent.com/FLAIROx/JaxMARL/refs/heads/main/docs/imgs/smax.gif" alt="SMAX" width="25%">
         </div>
     </div>
