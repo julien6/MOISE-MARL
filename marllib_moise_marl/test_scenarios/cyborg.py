@@ -13,28 +13,31 @@ from marllib.envs.base_env.wmt import RLlibWMT
 from collections import OrderedDict
 from ipaddress import IPv4Address
 from marllib.envs.base_env.cyborg import create_env
+from CybORG.Simulator.Actions import Sleep
+from CybORG.Simulator.Actions.ConcreteActions.ControlTraffic import BlockTraffic
+from CybORG.Simulator.Actions.ConcreteActions.ExploitActions.RetakeControl import RetakeControl
+from CybORG.Simulator.Actions.ConcreteActions.RemoveOtherSessions import RemoveOtherSessions
 
 
 class cyborg_label_manager(label_manager):
 
-    def __init__(self, ip_list, ip_host_map, msg_len, agent_host_map, action_space: gym.Space = None, observation_space: gym.Space = None):
+    def __init__(self, ip_list, ip_host_map, msg_len, agent_host_map, int_to_action, action_space: gym.Space = None, observation_space: gym.Space = None):
         super().__init__(action_space, observation_space)
 
         self.ip_list = ip_list
         self.ip_host_map = ip_host_map
         self.msg_len = msg_len
         self.agent_host_map = agent_host_map
+        self.int_to_action = int_to_action
 
-        self.action_encode = {
-            "nothing": 4,
-            "up": 0,
-            "down": 1,
-            "left": 3,
-            "right": 2,
-            "interact": 5
-        }
+    def get_ip_from_host(self, hostname: str) -> str:
+        for ip, host in self.ip_host_map.items():
+            if host == hostname:
+                return str(ip)
+        return None
 
-        self.action_decode = {v: k for k, v in self.action_encode.items()}
+    def get_host_from_agent(self, agent_name: str) -> str:
+        return self.agent_host_map.get(agent_name, None)
 
     def one_hot_decode_observation(self, observation: observation, agent: str = None) -> Any:
 
@@ -122,20 +125,98 @@ class cyborg_label_manager(label_manager):
 
         return obs
 
-    def one_hot_encode_action(self, action: Any, agent: str = None) -> action:
-        return self.action_encode[action]
+    def one_hot_encode_action(self, action, agent: str = None) -> int:
+        """
+        Given a CybORG Action object and an agent name, returns the corresponding integer 
+        index used in the discrete action space for this agent.
+
+        Parameters:
+        - action: a CybORG action (e.g., RetakeControl(...), Sleep(), etc.)
+        - agent: the name of the agent whose action space we refer to (e.g., 'blue_agent_0')
+
+        Returns:
+        - int: the index corresponding to this action for this agent
+        """
+        if agent is None:
+            raise ValueError("Agent must be specified")
+
+        if agent not in self.int_to_action:
+            raise ValueError(f"Agent '{agent}' not in int_to_action")
+
+        for idx, cyborg_action in self.int_to_action[agent].items():
+            if type(cyborg_action) != type(action):
+                continue
+
+            # Compare all important attributes (agent, ip_address, session, etc.)
+            if {k: v for k, v in cyborg_action.__dict__.items()} == {k: IPv4Address(v) if (k == "ip_address" and isinstance(v, str)) else v for k, v in action.__dict__.items()}:
+                return idx
+
+        raise ValueError(
+            f"Action {action} not found in action space of agent {agent}")
 
     def one_hot_decode_action(self, action: action, agent: str = None) -> Any:
-        return self.action_decode[action]
+        return self.int_to_action[agent][action]
 
 
-def primary_fun(trajectory: trajectory, observation: label, agent_name: str, label_manager: label_manager) -> label:
+def primary_fun_system_cleaner(trajectory, observation, agent_name, label_manager):
     data = label_manager.one_hot_decode_observation(
-        observation=observation, agent=agent_name)
-    from pprint import pprint
-    pprint(data)
-    print("\n\n")
-    return None
+        observation, agent=agent_name)
+    hostname = label_manager.get_host_from_agent(agent_name)
+
+    has_malicious_process = 'Processes' in data.get(hostname, {})
+    has_suspicious_conn = any(
+        'NetworkConnections' in iface and iface['NetworkConnections']
+        for iface in data.get(hostname, {}).get('Interface', [])
+    )
+
+    if has_malicious_process or has_suspicious_conn:
+        action = RemoveOtherSessions(agent=agent_name, session=0)
+    else:
+        action = Sleep()
+
+    return label_manager.one_hot_encode_action(action, agent=agent_name)
+
+
+def primary_fun_firewall_operator(trajectory, observation, agent_name, label_manager):
+    data = label_manager.one_hot_decode_observation(
+        observation, agent=agent_name)
+    hostname = label_manager.get_host_from_agent(agent_name)
+
+    seen_ips = []
+    for iface in data.get(hostname, {}).get('Interface', []):
+        conns = iface.get('NetworkConnections', [])
+        for conn in conns:
+            ip = conn.get('remote_address')
+            if ip and ip not in iface.get('blocked_ips', []):
+                seen_ips.append(ip)
+
+    if seen_ips:
+        ip_to_block = seen_ips[0]
+        action = BlockTraffic(
+            agent=agent_name, ip_address=ip_to_block, session=0)
+    else:
+        action = Sleep()
+
+    return label_manager.one_hot_encode_action(action, agent=agent_name)
+
+
+def primary_fun_system_rescuer(trajectory, observation, agent_name, label_manager):
+    data = label_manager.one_hot_decode_observation(
+        observation, agent=agent_name)
+    hostname = label_manager.get_host_from_agent(agent_name)
+
+    has_session = 'Sessions' in data.get(hostname, {})
+
+    if not has_session:
+        ip = label_manager.get_ip_from_host(hostname)
+        if ip is not None:
+            action = RetakeControl(agent=agent_name, ip_address=ip, session=0)
+        else:
+            action = Sleep()
+    else:
+        action = Sleep()
+
+    return label_manager.one_hot_encode_action(action, agent=agent_name)
 
 
 _env = create_env()
@@ -149,21 +230,24 @@ agent_ids = _env._agent_ids
 int_to_action = _env.int_to_action
 
 cyborg_label_mngr = cyborg_label_manager(
-    ip_list, ip_host_map, msg_len, agent_host_map)
+    ip_list, ip_host_map, msg_len, agent_host_map, int_to_action)
 
 cyborg_model = organizational_model(
     structural_specifications(
         roles={
-            "role_primary": role_logic(label_manager=cyborg_label_mngr).registrer_script_rule(primary_fun),
-            "role_secondary": role_logic(label_manager=cyborg_label_mngr).registrer_script_rule(primary_fun)},
+            "SystemCleaner": role_logic(label_manager=cyborg_label_mngr).registrer_script_rule(primary_fun_system_cleaner),
+            "FirewallOperator": role_logic(label_manager=cyborg_label_mngr).registrer_script_rule(primary_fun_firewall_operator),
+            "SystemRescuer": role_logic(label_manager=cyborg_label_mngr).registrer_script_rule(primary_fun_system_rescuer)},
         role_inheritance_relations={}, root_groups={}),
     functional_specifications=functional_specifications(
         goals={}, social_scheme={}, mission_preferences=[]),
     deontic_specifications=deontic_specifications(permissions=[], obligations=[
         deontic_specification(
-            "role_primary", ["blue_agent_0", "blue_agent_2", "blue_agent_3", "blue_agent_4", "blue_agent_5", "blue_agent_6"], [], time_constraint_type.ANY),
+            "SystemCleaner", ["blue_agent_0"], [], time_constraint_type.ANY),
         deontic_specification(
-            "role_secondary", ["blue_agent_1"], [], time_constraint_type.ANY)
+            "FirewallOperator", ["blue_agent_1"], [], time_constraint_type.ANY),
+        deontic_specification(
+            "SystemRescuer", ["blue_agent_2"], [], time_constraint_type.ANY),
     ]))
 
 # prepare env
