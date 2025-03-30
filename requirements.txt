@@ -1,7 +1,8 @@
-distrax
+# distrax
 pygame
-jax[cuda]
+# jax[cuda]
 imageio
 keyboard
 orbax
 protobuf==3.20.*
+scikit-learn

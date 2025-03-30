@@ -9,6 +9,8 @@ import matplotlib.pyplot as plt
 from typing import Any, Dict, List, Tuple
 from scipy.cluster.hierarchy import linkage, dendrogram
 from scipy.spatial.distance import squareform
+from sklearn.decomposition import PCA
+from matplotlib.cm import get_cmap
 
 
 class TEMM:
@@ -97,6 +99,64 @@ class TEMM:
 
         return dp[n][m]
 
+    def visualize_observation_trajectories_pca(self, observation_trajectories: List[List[np.ndarray]]):
+
+        all_points = np.concatenate(observation_trajectories)
+        pca = PCA(n_components=2)
+        points_2d = pca.fit_transform(all_points)
+
+        # more diverse colors
+        cmap = get_cmap('tab20', len(observation_trajectories))
+        index = 0
+        plt.figure(figsize=(10, 8))
+        for i, traj in enumerate(observation_trajectories):
+            length = len(traj)
+            traj_2d = points_2d[index:index + length]
+            index += length
+            color = cmap(i)
+            plt.plot(traj_2d[:, 0] + random.random() / 5, traj_2d[:, 1] + random.random() / 5, marker='o', linestyle='-', linewidth=1,
+                     markersize=4, alpha=0.8, label=f"Agent {i}", color=color)
+            # Annotate points with step index
+            for step, (x, y) in enumerate(traj_2d):
+                plt.text(x, y, str(step), fontsize=6, color=color, alpha=0.8)
+
+        plt.title("PCA Projection for Observations Trajectories")
+        plt.xlabel("PCA 1")
+        plt.ylabel("PCA 2")
+        plt.legend(loc='upper left', bbox_to_anchor=(1, 1))
+        plt.tight_layout()
+        plt.savefig(os.path.join(self.analysis_results_path,
+                    "figures", "observation_trajectories_pca.png"), dpi=300)
+        plt.close()
+
+    def pca_on_trajectory_representations(self, observation_trajectories: List[List[np.ndarray]]):
+        
+        traj_lengths = [len(traj) for traj in observation_trajectories]
+        if len(set(traj_lengths)) != 1:
+            return
+
+        # Concatenation of observations into a single vector per trajectory
+        representations = np.array([np.concatenate(traj).flatten() for traj in observation_trajectories])
+
+        # PCA
+        pca = PCA(n_components=2)
+        traj_points_2d = pca.fit_transform(representations)
+
+        # Display
+        plt.figure(figsize=(8, 6))
+        for i, point in enumerate(traj_points_2d):
+            plt.scatter(point[0], point[1], label=f'Trajectory {i}', alpha=0.8)
+            plt.text(point[0], point[1], str(i), fontsize=8)
+
+        plt.title("PCA Projection of Full Trajectories")
+        plt.xlabel("PCA 1")
+        plt.ylabel("PCA 2")
+        plt.legend()
+        plt.tight_layout()
+        plt.savefig(os.path.join(self.analysis_results_path,
+                    "figures", "trajectory_level_pca.png"), dpi=300)
+        plt.close()
+
     def cluster_individual_trajectories(self, trajectories: List[List[int]]):
         n = len(trajectories)
         dist_matrix = np.zeros((n, n))
@@ -140,9 +200,11 @@ class TEMM:
                     self.extract_action_sequences(trajectories).values())
                 observation_trajectories += list(
                     self.extract_observation_sequences(trajectories).values())
-
         self.cluster_individual_trajectories(action_trajectories)
-        self.cluster_individual_observation_trajectories(observation_trajectories)
+        self.cluster_individual_observation_trajectories(
+            observation_trajectories)
+        self.visualize_observation_trajectories_pca(observation_trajectories)
+        self.pca_on_trajectory_representations(observation_trajectories)
 
         joint_action_trajectories = []
         for file_name in os.listdir(os.path.join(self.analysis_results_path, "trajectories")):
@@ -167,7 +229,8 @@ class TEMM:
 
         for i in range(n):
             for j in range(i + 1, n):
-                dists = [np.linalg.norm(np.array(o1) - np.array(o2)) for o1, o2 in zip(trajectories[i], trajectories[j])]
+                dists = [np.linalg.norm(np.array(o1) - np.array(o2))
+                         for o1, o2 in zip(trajectories[i], trajectories[j])]
                 avg_dist = np.mean(dists) if dists else 0
                 dist_matrix[i, j] = dist_matrix[j, i] = avg_dist
 
@@ -180,6 +243,14 @@ class TEMM:
         plt.xlabel("Trajectory")
         plt.ylabel("Average Observation Distance")
         plt.tight_layout()
-        plt.savefig(os.path.join(self.analysis_results_path, "figures", "individual_observation_trajectories_clustering.png"), dpi=300)
+        plt.savefig(os.path.join(self.analysis_results_path, "figures",
+                    "individual_observation_trajectories_clustering.png"), dpi=300)
 
         return linkage_matrix
+
+
+if __name__ == '__main__':
+
+    t = TEMM(
+        "/home/julien/Documents/MOISE-MARL/marllib_moise_marl/test_scenarios/analysis_results")
+    t.generate_figures()
