@@ -125,7 +125,7 @@ clear ; ./clean.sh ; python overcooked.py
 
 The **MOISE+MARL API (MMA)** provides a series of classes and modified MARLlib functions. You can first implement a `label_manager` to handle observations and actions so you can conveniently use them to create roles and goals logics aftewards. Then, you can create an `organizational_model` that you can inject in the ```marllib.make_env``` function to make your organizational model effective during training.
 
-MMA also features the **Trajectory-based Evaluation in MOISE+MARL (TEMM)** method, accessed via the `TEMM` class. This function takes a joint-policy model and produces a new MOISE+MARL model augmented with inferred organizational specifications with unsupervised learning techniques.
+MMA also features the **Trajectory-based Evaluation in MOISE+MARL (TEMM)** method, accessed via the `TEMM` class. This function produces dendrogram showing clusters of actions and observation to help in determing implicit roles and goals in an augmented MOISE+MARL model.
 
 Here is an environment-agnostic skeleton code showing the underlying principles of MMA.
 

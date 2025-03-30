@@ -20,6 +20,9 @@ class TEMM:
     def extract_action_sequences(self, trajectories: Dict[str, List[List[Any]]]) -> Dict[str, List[Any]]:
         return {agent: [act for obs, act in trajectory] for agent, trajectory in trajectories.items()}
 
+    def extract_observation_sequences(self, trajectories: Dict[str, List[List[Any]]]) -> Dict[str, List[Any]]:
+        return {agent: [obs for obs, act in trajectory] for agent, trajectory in trajectories.items()}
+
     def joint_action_similarity(self, a1: Tuple[int, int], a2: Tuple[int, int]) -> float:
         if len(a1) != len(a2):
             return 0.
@@ -123,17 +126,23 @@ class TEMM:
 
     def generate_figures(self):
 
-        if not os.path.exists(os.path.join(self.analysis_results_path, "figures")):
-            os.mkdir(os.path.join(self.analysis_results_path, "figures"))
+        figures_path = os.path.join(self.analysis_results_path, "figures")
+        if not os.path.exists(figures_path):
+            os.mkdir(figures_path)
 
         action_trajectories = []
+        observation_trajectories = []
         for file_name in os.listdir(os.path.join(self.analysis_results_path, "trajectories")):
             if "trajectories_" in file_name and file_name.endswith(".json"):
                 trajectories = json.load(
                     open(os.path.join(self.analysis_results_path, "trajectories", file_name), "r"))
                 action_trajectories += list(
                     self.extract_action_sequences(trajectories).values())
+                observation_trajectories += list(
+                    self.extract_observation_sequences(trajectories).values())
+
         self.cluster_individual_trajectories(action_trajectories)
+        self.cluster_individual_observation_trajectories(observation_trajectories)
 
         joint_action_trajectories = []
         for file_name in os.listdir(os.path.join(self.analysis_results_path, "trajectories")):
@@ -149,4 +158,28 @@ class TEMM:
                         joint_action += [action_trajectories[agent][i]]
                     joint_action_trajectory += [joint_action]
                 joint_action_trajectories += [joint_action_trajectory]
+
         self.cluster_joint_trajectories(joint_action_trajectories)
+
+    def cluster_individual_observation_trajectories(self, trajectories: List[List[np.ndarray]]):
+        n = len(trajectories)
+        dist_matrix = np.zeros((n, n))
+
+        for i in range(n):
+            for j in range(i + 1, n):
+                dists = [np.linalg.norm(np.array(o1) - np.array(o2)) for o1, o2 in zip(trajectories[i], trajectories[j])]
+                avg_dist = np.mean(dists) if dists else 0
+                dist_matrix[i, j] = dist_matrix[j, i] = avg_dist
+
+        condensed_dist = squareform(dist_matrix)
+        linkage_matrix = linkage(condensed_dist, method='average')
+
+        plt.figure(figsize=(10, 5))
+        dendrogram(linkage_matrix, labels=[f"{i}" for i in range(n)])
+        plt.title("Individual Observations Trajectories Clustering")
+        plt.xlabel("Trajectory")
+        plt.ylabel("Average Observation Distance")
+        plt.tight_layout()
+        plt.savefig(os.path.join(self.analysis_results_path, "figures", "individual_observation_trajectories_clustering.png"), dpi=300)
+
+        return linkage_matrix
