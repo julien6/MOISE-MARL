@@ -146,12 +146,14 @@ def go_towards(dx, dy, facing_walls):
             return list(actions.keys())[0]
         if (abs(dx) > 1 or abs(dy) > 1):
             directions = ["up", "down", "left", "right"]
-            free_dir = [directions[index] for index, blocked_wall in enumerate(facing_walls) if blocked_wall == 0]
+            free_dir = [directions[index] for index, blocked_wall in enumerate(
+                facing_walls) if blocked_wall == 0]
             return random.choice(free_dir)
     else:
         for action, free in actions.items():
             if free:
                 return action
+
 
 ori = {
     "up": np.asarray([1, 0, 0, 0]),
@@ -195,7 +197,7 @@ def primary_fun(trajectory: trajectory, observation: label, agent_name: str, lab
     # ]
 
     orientation = data["orientation"]
-    held_object = data["held_object"]
+    held_object = np.array(data["held_object"])
     dist_onion = data["dist_onion"]
     dist_soup = data["dist_soup"]
     dist_dish = data["dist_dish"]
@@ -242,7 +244,6 @@ def primary_fun(trajectory: trajectory, observation: label, agent_name: str, lab
         action = go_and_interact(dist_dish, orientation, facing_walls)
         if action is not None:
             return label_manager.one_hot_encode_action(action)
-
     # If pot 0 is full and non-cooking and if agent has nothing in hands, then go and interact to launch the cooking
     if (pot_0_is_full == 1 and pot_0_is_cooking == 0 and pot_0_is_ready == 0) and np.all(held_object == 0):
         action = go_and_interact(pot_0_dist, orientation, facing_walls)
@@ -312,9 +313,10 @@ mappo.render(env, model,
                  'params_path': "./exp_results/mappo_mlp_asymmetric_advantages_copy/MAPPOTrainer_overcooked_asymmetric_advantages_08cc3_00000_0_2025-03-19_10-25-01/params.json",
                  'model_path': "./exp_results/mappo_mlp_asymmetric_advantages_copy/MAPPOTrainer_overcooked_asymmetric_advantages_08cc3_00000_0_2025-03-19_10-25-01/checkpoint_000020/checkpoint-20",
                  'render': True,
-                #  'record_env': True,
+                 #  'record_env': True,
                  'render_env': True
              },
+             enable_temm = True,
              local_mode=True,
              share_policy="group",
              stop_timesteps=1,

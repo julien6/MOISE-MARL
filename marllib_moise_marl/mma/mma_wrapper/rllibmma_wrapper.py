@@ -1,15 +1,21 @@
+import json
+from mma_wrapper.TEMM import TEMM
+import numpy as np
+import os
+import time
+
 from copy import copy, deepcopy
 from typing import Dict, List, TypedDict
 from mma_wrapper.organizational_model import organizational_model
 from mma_wrapper.organizational_specification_logic import goal_logic, role_logic
 from ray.rllib.env.multi_agent_env import MultiAgentEnv
 
-from marllib.envs.base_env.mpe import RLlibMPE
-
 
 class RLlibMMA_wrapper(MultiAgentEnv):
 
-    def __init__(self, env: MultiAgentEnv, organizational_model: organizational_model = None, render_mode=None):
+    temm_enabled = False
+
+    def __init__(self, env: MultiAgentEnv, organizational_model: organizational_model = None, render_mode=None, analysis_folder=None):
         self.env = env
         self.metadata = env.metadata
         self.metadata["render.modes"] = ['human', 'rgb_array']
@@ -24,6 +30,12 @@ class RLlibMMA_wrapper(MultiAgentEnv):
         self.agents = self.env.agents
         self.num_agents = self.env.num_agents
         self.env_config = self.env.env_config
+        self.analysis_folder = analysis_folder
+        self.episode_number = 0
+
+        if self.temm_enabled and not os.path.exists(os.path.join(self.analysis_folder, "trajectories")):
+            os.mkdir(os.path.join(self.analysis_folder))
+            os.mkdir(os.path.join(self.analysis_folder, "trajectories"))
 
         class os_logics(TypedDict):
             role_logic: 'role_logic'
@@ -70,7 +82,6 @@ class RLlibMMA_wrapper(MultiAgentEnv):
                         goal_logics)
 
     def step(self, action_dict):
-
         # 1 - update the action space according to hard constraint role rules
         corrected_actions = action_dict
         if self.organizational_model:
@@ -110,17 +121,32 @@ class RLlibMMA_wrapper(MultiAgentEnv):
                                        corrected_actions[agent])]
             if "obs" in o:
                 o = o.get('obs')
+                if isinstance(o, np.ndarray):
+                    o = o.tolist()
             self.last_observations[agent] = o
 
         return obs, corrected_rewards, dones, info
 
     def reset(self):
+
         _last_observations = self.env.reset()
         self.last_observations = {}
         for agent, obs in _last_observations.items():
             if "obs" in obs:
                 obs = obs.get('obs')
+                if isinstance(obs, np.ndarray):
+                    obs = obs.tolist()
             self.last_observations[agent] = obs
+
+        if len(self.histories[list(_last_observations.keys())[0]]) > 0:
+            if self.temm_enabled:
+                json.dump(self.histories, open(os.path.join(
+                    self.analysis_folder, "trajectories", f"trajectories_{self.episode_number}.json"), "w+"))
+                self.episode_number += 1
+
+            for agent, obs in _last_observations.items():
+                self.histories[agent] = []
+
         return _last_observations
 
     def close(self):
