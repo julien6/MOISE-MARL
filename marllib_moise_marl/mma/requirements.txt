@@ -1,8 +1,8 @@
-# matplotlib
+matplotlib
+scikit-learn
 # SuperSuit
 # PyQt5
 # stable-baselines3
-# scikit-learn
 # tensorboard
 # ray==1.8.0
 # ray[tune]==1.8.0
