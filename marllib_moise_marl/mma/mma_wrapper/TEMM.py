@@ -258,21 +258,15 @@ class TEMM:
         linkage_matrix = linkage(condensed_dist, method='average')
 
         cluster_seqs = {i: sequences[i] for i in range(n)}
-        cluster_labels = {i: str(sequences[i]) for i in range(n)}
-        current_cluster_id = n
-        node_to_leaves = {}
-        for k, (i, j, _, _) in enumerate(linkage_matrix):
-            cluster_id = n + k
+        cluster_labels = {i: str(sequences[i])
+                          for i in range(n)}
+
+        for cluster_id, (i, j, _, _) in enumerate(linkage_matrix, start=n):
             left_seq = cluster_seqs[int(i)]
             right_seq = cluster_seqs[int(j)]
-            merged_seq, _ = self.find_best_subsequence([right_seq, left_seq])
-            print("processing ", cluster_id, " = ", merged_seq, " from ", int(i), " = ", left_seq, " and ", int(j), " = ", right_seq)
-            node_to_leaves[k + n] = [int(i), int(j)]
+            merged_seq, _ = self.find_best_subsequence([left_seq, right_seq])
             cluster_seqs[cluster_id] = merged_seq
-            print(cluster_id, " <= ", int(i), " ; ", int(j))
             cluster_labels[cluster_id] = f"{merged_seq}"
-
-        print("===>  ", cluster_labels)
 
         def fancy_label_func(id):
             return f"{id}={str(cluster_labels[id])}"
@@ -283,19 +277,15 @@ class TEMM:
             labels=[fancy_label_func(i) for i in range(n)],
             leaf_font_size=10,
         )
-        print(node_to_leaves)
+
         def annotate_dendrogram(linkage_matrix, cluster_labels, dendro_data):
+            n = len(cluster_labels) // 2
             icoord = dendro_data['icoord']
             dcoord = dendro_data['dcoord']
             leaves = dendro_data['leaves']
 
-            print(icoord)
-            print("======================", leaves)
-            print(dcoord)
-
             for k, (i, j, _, _) in enumerate(linkage_matrix):
-                node_id = n - 1 + leaves[k]
-                print(leaves[k] + n - 1, " ", n - 1, " ", leaves[k])
+                node_id = n + k
 
                 x = np.mean(icoord[k][1:3])
                 y = dcoord[k][1]
@@ -497,10 +487,10 @@ if __name__ == '__main__':
         [0, 0, 1, 2, 0, 3, 0, 4],
         [7, 8, 9, 1, 0, 0, 1, 2],
         [7, 8, 9, 1, 0, 1, 2, 0],
-        [9, 8, 9, 1, 0, 2, 2, 0],
-        [0, 2, 0, 1, 0, 0, 0, 0],
+        # [9, 8, 9, 1, 0, 2, 2, 0],
+        # [0, 2, 0, 1, 0, 0, 0, 0],
     ]
 
     # print(find_best_subsequence([[0, 1, 0, 2, 0, 3, 4, 0], [0, 0, 1, 0, 2, 3, 4, 0], [0, 0, 1, 2, 0, 3, 4, 0]]))
 
-    t.compute_fuzzy_lcs_clustering(sequences)
+    print(t.compute_fuzzy_lcs_clustering(sequences))
