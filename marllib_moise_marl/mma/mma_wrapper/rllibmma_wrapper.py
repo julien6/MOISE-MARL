@@ -1,5 +1,4 @@
 import json
-from mma_wrapper.TEMM import TEMM
 import numpy as np
 import os
 import time

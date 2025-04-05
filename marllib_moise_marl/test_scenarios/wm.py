@@ -60,8 +60,9 @@ class wm_label_manager(label_manager):
         return _obs
 
     def one_hot_decode_observation(self, observation: observation, agent: str = None) -> Any:
-        _obs = np.asarray([self.cell_decode[observation[x]]
-                          for x in range(0, observation.shape[0])])
+        _obs = np.asarray(observation)
+        _obs = np.asarray([self.cell_decode[_obs[x]]
+                          for x in range(0, _obs.shape[0])])
         if self.view_scope is not None:
             return _obs.reshape((self.view_scope * 2 + 1), (self.view_scope * 2 + 1))
         return _obs
@@ -243,6 +244,7 @@ mappo.render(env, model,
                 #  'record_env': True,
                  'render_env': True
              },
+             
              local_mode=True,
              share_policy="group",
              stop_timesteps=100,

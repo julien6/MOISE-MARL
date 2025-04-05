@@ -12,6 +12,7 @@ from sklearn.decomposition import PCA
 from matplotlib.cm import get_cmap
 from scipy.cluster.hierarchy import fcluster
 from itertools import combinations
+from scipy.cluster.hierarchy import to_tree
 
 
 class TEMM:
@@ -218,28 +219,131 @@ class TEMM:
             for indices in combinations(range(n), l):
                 yield tuple(seq[i] for i in indices)
 
-    def find_best_subsequence(self, sequences, min_len=3):
-        candidates = set(self.generate_candidates(sequences[0], min_len))
-        best = ()
-        best_count = -1
-        best_len = -1
-        best_diversity = -1
+    def smith_waterman_common_subsequence(self, seq1, seq2, match_score=2, mismatch_penalty=-1, gap_penalty=-1):
+        aligned1, aligned2, _ = self.smith_waterman(
+            seq1, seq2, match_score, mismatch_penalty, gap_penalty)
 
-        for cand in candidates:
-            count = sum(self.is_fuzzy_subsequence(cand, seq)
-                        for seq in sequences)
-            diversity = len(set(cand))
-            if (
-                count > best_count
-                or (count == best_count and len(cand) > best_len)
-                or (count == best_count and len(cand) == best_len and diversity > best_diversity)
-            ):
-                best = cand
-                best_count = count
-                best_len = len(cand)
-                best_diversity = diversity
+        if aligned1 == aligned2:
+            return aligned1
+        elif len(aligned1) > len(aligned2):
+            return aligned1
+        else:
+            return aligned2
 
-        return list(best), best_count
+    def fuzzy_lcs_common_subsequence(self, seq1, seq2, min_len=3):
+            candidates = set(self.generate_candidates(seq1, min_len))
+            best = ()
+            best_count = -1
+            best_len = -1
+            best_diversity = -1
+
+            for cand in candidates:
+                count = sum(self.is_fuzzy_subsequence(cand, seq)
+                            for seq in [seq1, seq2])
+                diversity = len(set(cand))
+                if (
+                    count > best_count
+                    or (count == best_count and len(cand) > best_len)
+                    or (count == best_count and len(cand) == best_len and diversity > best_diversity)
+                ):
+                    best = cand
+                    best_count = count
+                    best_len = len(cand)
+                    best_diversity = diversity
+
+            return list(best), best_count
+
+    def find_best_subsequence(self, sequences, use_smith_waterman=True, use_fuzzy=False):
+
+        if use_fuzzy:
+            candidates = set(self.generate_candidates(sequences[0], min_len))
+            best = ()
+            best_count = -1
+            best_len = -1
+            best_diversity = -1
+
+            for cand in candidates:
+                count = sum(self.is_fuzzy_subsequence(cand, seq)
+                            for seq in sequences)
+                diversity = len(set(cand))
+                if (
+                    count > best_count
+                    or (count == best_count and len(cand) > best_len)
+                    or (count == best_count and len(cand) == best_len and diversity > best_diversity)
+                ):
+                    best = cand
+                    best_count = count
+                    best_len = len(cand)
+                    best_diversity = diversity
+
+            return list(best), best_count
+
+        if use_smith_waterman:
+            return self.smith_waterman_common_subsequence(sequences[0], sequences[1]), None
+
+    def smith_waterman(self, seq1, seq2, match_score=2, mismatch_penalty=-1, gap_penalty=-1):
+        m, n = len(seq1), len(seq2)
+        H = np.zeros((m + 1, n + 1), dtype=int)
+        max_score = 0
+        max_pos = None
+
+        for i in range(1, m + 1):
+            for j in range(1, n + 1):
+                match = H[i - 1][j - 1] + \
+                    (match_score if seq1[i - 1] ==
+                     seq2[j - 1] else mismatch_penalty)
+                delete = H[i - 1][j] + gap_penalty
+                insert = H[i][j - 1] + gap_penalty
+                H[i][j] = max(0, match, delete, insert)
+
+                if H[i][j] > max_score:
+                    max_score = H[i][j]
+                    max_pos = (i, j)
+
+        i, j = max_pos
+        aligned_seq1 = []
+        aligned_seq2 = []
+
+        while H[i][j] > 0:
+            score = H[i][j]
+            diag = H[i - 1][j - 1]
+            up = H[i - 1][j]
+            left = H[i][j - 1]
+
+            if score == diag + (match_score if seq1[i - 1] == seq2[j - 1] else mismatch_penalty):
+                aligned_seq1.insert(0, seq1[i - 1])
+                aligned_seq2.insert(0, seq2[j - 1])
+                i -= 1
+                j -= 1
+            elif score == up + gap_penalty:
+                i -= 1
+            elif score == left + gap_penalty:
+                j -= 1
+            else:
+                break
+
+        return aligned_seq1, aligned_seq2, max_score
+
+    def compute_smith_waterman_clustering(self, sequences, match_score=2, mismatch_penalty=-1, gap_penalty=-1):
+        n = len(sequences)
+        sim_matrix = np.zeros((n, n))
+
+        for i in range(n):
+            for j in range(i + 1, n):
+                a1, a2, score = self.smith_waterman(sequences[i], sequences[j],
+                                                    match_score, mismatch_penalty, gap_penalty)
+                max_len = min(len(sequences[i]), len(sequences[j]))
+                sim_matrix[i, j] = sim_matrix[j, i] = score / \
+                    (match_score * max_len)
+
+        dist_matrix = 1 - sim_matrix
+        np.fill_diagonal(dist_matrix, 0)
+        condensed_dist = squareform(dist_matrix)
+
+        linkage_matrix = linkage(condensed_dist, method='average')
+
+        self.generate_dendrogram(
+            sequences, linkage_matrix, file_name="smith_waterman_clustering.png")
 
     def compute_fuzzy_lcs_clustering(self, sequences):
 
@@ -257,9 +361,18 @@ class TEMM:
         condensed_dist = squareform(dist_matrix, checks=False)
         linkage_matrix = linkage(condensed_dist, method='average')
 
+        self.generate_dendrogram(
+            sequences, linkage_matrix, file_name="fuzzy_lcs_clustering.png")
+
+    def generate_dendrogram(self, sequences, linkage_matrix, file_name="output_dendrogram.png"):
+
+        n = len(sequences)
+
         cluster_seqs = {i: sequences[i] for i in range(n)}
         cluster_labels = {i: str(sequences[i])
                           for i in range(n)}
+
+        nodes_to_leaves = {}
 
         for cluster_id, (i, j, _, _) in enumerate(linkage_matrix, start=n):
             left_seq = cluster_seqs[int(i)]
@@ -267,32 +380,47 @@ class TEMM:
             merged_seq, _ = self.find_best_subsequence([left_seq, right_seq])
             cluster_seqs[cluster_id] = merged_seq
             cluster_labels[cluster_id] = f"{merged_seq}"
+            nodes_to_leaves[cluster_id] = (int(i), int(j))
 
         def fancy_label_func(id):
-            return f"{id}={str(cluster_labels[id])}"
+            return f"{id}"  # ={str(cluster_labels[id])}"
 
         plt.figure(figsize=(14, 7))
         dendro_data = dendrogram(
             linkage_matrix,
             labels=[fancy_label_func(i) for i in range(n)],
-            leaf_font_size=10,
+            leaf_font_size=10
         )
 
+        leaves = dendro_data['leaves']
+
         def annotate_dendrogram(linkage_matrix, cluster_labels, dendro_data):
-            n = len(cluster_labels) // 2
-            icoord = dendro_data['icoord']
-            dcoord = dendro_data['dcoord']
-            leaves = dendro_data['leaves']
+            tree, nodes_list = to_tree(linkage_matrix, rd=True)
 
-            for k, (i, j, _, _) in enumerate(linkage_matrix):
-                node_id = n + k
+            leaf_positions = {leaf_id: 5 + 10 * i for i,
+                              leaf_id in enumerate(dendro_data['leaves'])}
+            node_positions = {}
 
-                x = np.mean(icoord[k][1:3])
-                y = dcoord[k][1]
+            def get_position(node):
+                if node.id < n:
+                    x = leaf_positions[node.id]
+                    y = 0.0
+                else:
+                    x_left, y_left = get_position(node.left)
+                    x_right, y_right = get_position(node.right)
+                    x = (x_left + x_right) / 2
+                    y = node.dist
+                node_positions[node.id] = (x, y)
+                return x, y
 
-                label = f"{node_id}={cluster_labels[node_id]}"
-                plt.text(x, y + 0.01, label, fontsize=9,
-                         ha='center', va='bottom', rotation=0)
+            get_position(tree)
+
+            # Affichage des vrais ID de cluster et leur contenu (même ordre que linkage_matrix)
+            for node_id, (x, y) in node_positions.items():
+                if node_id >= n:
+                    label = f"{node_id}={cluster_labels[node_id]}"
+                    plt.text(x, y + 0.01, label, fontsize=9,
+                             ha='center', va='bottom', rotation=0)
 
         annotate_dendrogram(linkage_matrix, cluster_labels, dendro_data)
 
@@ -301,7 +429,9 @@ class TEMM:
         plt.ylabel("Distance")
         plt.grid(True)
         plt.tight_layout()
-        plt.show()
+        # plt.show()
+        plt.savefig(os.path.join(self.analysis_results_path,
+                    "figures", file_name), dpi=300)
 
     def generate_figures(self):
 
@@ -320,10 +450,15 @@ class TEMM:
                                       for agent, trajectory in trajectories.items()]
                 action_trajectories += list(
                     self.extract_action_sequences(trajectories).values())
+                action_trajectories = [[a if random.randint(
+                    0, 100) <= 98 else 0 for a in seq] for seq in action_trajectories]
+
                 observation_trajectories += list(
                     self.extract_observation_sequences(trajectories).values())
 
-        self.compute_fuzzy_lcs_clustering(action_trajectories)
+        # self.compute_fuzzy_lcs_clustering(action_trajectories)
+
+        self.compute_smith_waterman_clustering(action_trajectories)
 
         # self.infer_roles_from_clusters(full_trajectories)
 
@@ -487,10 +622,12 @@ if __name__ == '__main__':
         [0, 0, 1, 2, 0, 3, 0, 4],
         [7, 8, 9, 1, 0, 0, 1, 2],
         [7, 8, 9, 1, 0, 1, 2, 0],
-        # [9, 8, 9, 1, 0, 2, 2, 0],
-        # [0, 2, 0, 1, 0, 0, 0, 0],
+        [9, 8, 9, 1, 0, 2, 2, 0],
+        [0, 2, 0, 1, 0, 0, 0, 0],
     ]
 
-    # print(find_best_subsequence([[0, 1, 0, 2, 0, 3, 4, 0], [0, 0, 1, 0, 2, 3, 4, 0], [0, 0, 1, 2, 0, 3, 4, 0]]))
+    # # print(find_best_subsequence([[0, 1, 0, 2, 0, 3, 4, 0], [0, 0, 1, 0, 2, 3, 4, 0], [0, 0, 1, 2, 0, 3, 4, 0]]))
 
     print(t.compute_fuzzy_lcs_clustering(sequences))
+
+    # print(t.compute_smith_waterman_clustering(sequences))

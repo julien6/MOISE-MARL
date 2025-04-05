@@ -133,7 +133,7 @@ Here is an environment-agnostic skeleton code showing the underlying principles 
 from marllib import marl
 from mma_wrapper.label_manager import label_manager
 from mma_wrapper.organizational_model import deontic_specification, organizational_model, structural_specifications, functional_specifications, deontic_specifications, time_constraint_type
-from mma_wrapper.TEMM import TEMM
+from mma_wrapper.temm.TEMM import TEMM
 from mma_wrapper.organizational_specification_logic import role_logic, goal_factory, role_factory, goal_logic
 from mma_wrapper.utils import label, observation, action, trajectory
 from simple_env import simple_env
