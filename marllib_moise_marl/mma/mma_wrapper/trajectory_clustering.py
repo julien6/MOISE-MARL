@@ -33,48 +33,48 @@ class TestClustering(unittest.TestCase):
         ]
 
     def test_cluster_trajectories_from_action_euclidean(self):
-        clusters = cluster_trajectories_from_action(
+        clusters, linkage_matrix = cluster_trajectories_from_action(
             self.action_trajectories, "euclidean")
         self.assertIsInstance(clusters, dict)
         self.assertGreaterEqual(len(clusters), 1)
 
     def test_cluster_trajectories_from_action_cosine(self):
-        clusters = cluster_trajectories_from_action(
+        clusters, linkage_matrix = cluster_trajectories_from_action(
             self.action_trajectories, "cosine")
         self.assertIsInstance(clusters, dict)
 
     def test_cluster_trajectories_from_action_lcs(self):
-        clusters = cluster_trajectories_from_action(
+        clusters, linkage_matrix = cluster_trajectories_from_action(
             self.action_trajectories, "lcs")
         self.assertIsInstance(clusters, dict)
 
     def test_cluster_trajectories_from_action_fuzzy_lcs(self):
-        clusters = cluster_trajectories_from_action(
+        clusters, linkage_matrix = cluster_trajectories_from_action(
             self.action_trajectories, "fuzzy_lcs")
         self.assertIsInstance(clusters, dict)
 
     def test_cluster_trajectories_from_action_smith_waterman(self):
-        clusters = cluster_trajectories_from_action(
+        clusters, linkage_matrix = cluster_trajectories_from_action(
             self.action_trajectories, "smith_waterman")
         self.assertIsInstance(clusters, dict)
 
     def test_cluster_trajectories_from_observation_euclidean(self):
-        clusters = cluster_trajectories_from_observation(
+        clusters, linkage_matrix = cluster_trajectories_from_observation(
             self.observation_trajectories, "euclidean")
         self.assertIsInstance(clusters, dict)
 
     def test_cluster_trajectories_from_observation_cosine(self):
-        clusters = cluster_trajectories_from_observation(
+        clusters, linkage_matrix = cluster_trajectories_from_observation(
             self.observation_trajectories, "cosine")
         self.assertIsInstance(clusters, dict)
 
     def test_cluster_full_trajectories_euclidean(self):
-        clusters = cluster_full_trajectories(
+        clusters, linkage_matrix = cluster_full_trajectories(
             self.full_trajectories, "euclidean")
         self.assertIsInstance(clusters, dict)
 
     def test_cluster_full_trajectories_cosine(self):
-        clusters = cluster_full_trajectories(self.full_trajectories, "cosine")
+        clusters, linkage_matrix = cluster_full_trajectories(self.full_trajectories, "cosine")
         self.assertIsInstance(clusters, dict)
 
 

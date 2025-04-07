@@ -1,5 +1,6 @@
 import unittest
 import os
+from mma_wrapper.temm.clustering import cluster_full_trajectories
 import numpy as np
 import shutil
 
@@ -18,96 +19,80 @@ from mma_wrapper.temm.visualization import (
 
 class TestVisualization(unittest.TestCase):
 
-    @classmethod
-    def setUpClass(cls):
-        cls.output_dir = "test_figures"
-        os.makedirs(cls.output_dir, exist_ok=True)
+    def setUp(self):
 
-    @classmethod
-    def tearDownClass(cls):
-        shutil.rmtree(cls.output_dir)
+        self.figures_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), "figures")
+        if not os.path.exists(self.figures_path):
+            os.makedirs(self.figures_path)
+
+        # 3 simple action trajectories (integer values ​​between 0 and 2)
+        self.action_trajectories = [
+            [0, 1, 2],
+            [0, 1, 2],
+            [2, 1, 0]
+        ]
+
+        # 3 observation trajectories (3-dimensional vectors)
+        self.observation_trajectories = [
+            [np.array([0, 1, 0]), np.array([0, 1, 1])],
+            [np.array([0, 1, 0]), np.array([0, 1, 1])],
+            [np.array([1, 0, 1]), np.array([1, 0, 0])]
+        ]
+
+        # 3 complete trajectories (obs, act)
+        self.full_trajectories = [
+            [(np.array([0, 1]), 0), (np.array([1, 0]), 1)],
+            [(np.array([0, 1]), 0), (np.array([1, 0]), 1)],
+            [(np.array([1, 0]), 2), (np.array([0, 1]), 0)]
+        ]
+
+    def tearDown(self):
+        # if os.path.exists(self.figures_path):
+        #     shutil.rmtree(self.figures_path)
+        pass
 
     def test_generate_dendrogram(self):
-        clusters = {0: [[0, 1, 2]], 1: [[2, 1, 0]]}
-        generate_dendrogram(clusters, save_path=os.path.join(
-            self.output_dir, "full_dendrogram.png"))
-        self.assertTrue(os.path.exists(os.path.join(
-            self.output_dir, "full_dendrogram.png")))
+        output_file_path = generate_dendrogram(self.full_trajectories, os.path.join(self.figures_path, "full_dendrogram.png"))
+        self.assertTrue(os.path.exists(output_file_path))
 
     def test_generate_actions_dendrogram(self):
-        clusters = {0: [[0, 1, 2]], 1: [[2, 1, 0]]}
-        generate_actions_dendrogram(clusters, save_path=os.path.join(
-            self.output_dir, "actions_dendrogram.png"))
-        self.assertTrue(os.path.exists(os.path.join(
-            self.output_dir, "actions_dendrogram.png")))
+        output_file_path = generate_actions_dendrogram(self.action_trajectories, os.path.join(self.figures_path, "actions_dendrogram.png"))
+        self.assertTrue(os.path.exists(output_file_path))
 
     def test_generate_observations_dendrogram(self):
-        clusters = {0: [[np.array([1, 0]), np.array([0, 1])]], 1: [
-            [np.array([0, 1]), np.array([1, 0])]]}
-        generate_observations_dendrogram(
-            clusters, save_path=os.path.join(self.output_dir, "obs_dendrogram.png"))
-        self.assertTrue(os.path.exists(os.path.join(
-            self.output_dir, "obs_dendrogram.png")))
+        output_file_path = generate_observations_dendrogram(self.observation_trajectories, os.path.join(self.figures_path, "observations_dendrogram.png"))
+        self.assertTrue(os.path.exists(output_file_path))
 
     def test_visualize_action_pca(self):
-        trajectories = [
-            [0, 1, 2],
-            [2, 1, 0],
-        ]
-        visualize_action_pca(trajectories, save_path=os.path.join(
-            self.output_dir, "action_pca.png"))
-        self.assertTrue(os.path.exists(
-            os.path.join(self.output_dir, "action_pca.png")))
+        output_file_path = visualize_action_pca(self.action_trajectories, save_path=os.path.join(
+            self.figures_path, "action_pca.png"))
+        self.assertTrue(os.path.exists(output_file_path))
 
     def test_visualize_observation_pca(self):
-        trajectories = [
-            [np.array([1, 0, 1]), np.array([0, 1, 0])],
-            [np.array([0, 1, 1]), np.array([1, 0, 0])]
-        ]
-        visualize_observation_pca(
-            trajectories, save_path=os.path.join(self.output_dir, "obs_pca.png"))
-        self.assertTrue(os.path.exists(
-            os.path.join(self.output_dir, "obs_pca.png")))
+        output_file_path = visualize_observation_pca(
+            self.observation_trajectories, save_path=os.path.join(self.figures_path, "obs_pca.png"))
+        self.assertTrue(os.path.exists(output_file_path))
 
     def test_visualize_transition_pca(self):
-        full_trajectories = [
-            [(np.array([1, 0]), 0), (np.array([0, 1]), 1)],
-            [(np.array([0, 1]), 2), (np.array([1, 0]), 1)]
-        ]
-        visualize_transition_pca(full_trajectories, save_path=os.path.join(
-            self.output_dir, "transition_pca.png"))
-        self.assertTrue(os.path.exists(os.path.join(
-            self.output_dir, "transition_pca.png")))
+        output_file_path = visualize_transition_pca(
+            self.full_trajectories, save_path=os.path.join(self.figures_path, "transition_pca.png"))
+        self.assertTrue(os.path.exists(output_file_path))
 
     def test_visualize_action_trajectory(self):
-        trajectories = [
-            [0, 1, 2],
-            [2, 1, 0],
-        ]
-        visualize_action_trajectory(trajectories, save_path=os.path.join(
-            self.output_dir, "action_trajectory.png"))
-        self.assertTrue(os.path.exists(os.path.join(
-            self.output_dir, "action_trajectory.png")))
+        output_file_path = visualize_action_trajectory(self.action_trajectories, save_path=os.path.join(
+            self.figures_path, "action_trajectory.png"))
+        self.assertTrue(os.path.exists(output_file_path))
 
     def test_visualize_observation_trajectory(self):
-        trajectories = [
-            [np.array([1, 0]), np.array([0, 1])],
-            [np.array([0, 1]), np.array([1, 0])]
-        ]
-        visualize_observation_trajectory(
-            trajectories, save_path=os.path.join(self.output_dir, "obs_trajectory.png"))
-        self.assertTrue(os.path.exists(os.path.join(
-            self.output_dir, "obs_trajectory.png")))
+        output_file_path = visualize_observation_trajectory(
+            self.observation_trajectories, save_path=os.path.join(self.figures_path, "obs_trajectory.png"))
+        self.assertTrue(os.path.exists(output_file_path))
 
     def test_visualize_trajectory(self):
-        full_trajectories = [
-            [(np.array([1, 0]), 0), (np.array([0, 1]), 1)],
-            [(np.array([0, 1]), 2), (np.array([1, 0]), 1)]
-        ]
-        visualize_trajectory(full_trajectories, save_path=os.path.join(
-            self.output_dir, "full_trajectory.png"))
-        self.assertTrue(os.path.exists(os.path.join(
-            self.output_dir, "full_trajectory.png")))
+        output_file_path = visualize_trajectory(self.full_trajectories, save_path=os.path.join(
+            self.figures_path, "full_trajectory.png"))
+        self.assertTrue(os.path.exists(output_file_path))
 
 
 if __name__ == '__main__':

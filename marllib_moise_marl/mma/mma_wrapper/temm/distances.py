@@ -18,7 +18,7 @@ def one_hot_encode_trajectories(trajectories: List[List[int]], num_actions: int)
     for traj in trajectories:
         encoded_traj = []
         for a in traj:
-            one_hot = np.zeros(num_actions)
+            one_hot = np.zeros((num_actions,))
             one_hot[a] = 1
             encoded_traj.append(one_hot)
         encoded.append(np.concatenate(encoded_traj))  # flatten

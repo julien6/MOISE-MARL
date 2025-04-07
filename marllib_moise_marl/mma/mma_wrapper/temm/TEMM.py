@@ -48,11 +48,11 @@ class TEMM:
             extract_observation_trajectories(raw_episodes).values())
 
         print("2. Clustering trajectories...")
-        action_clusters = cluster_trajectories_from_action(
+        action_clusters, linkage_matrix = cluster_trajectories_from_action(
             action_trajectories, distance_method_action)
-        observation_clusters = cluster_trajectories_from_observation(
+        observation_clusters, linkage_matrix = cluster_trajectories_from_observation(
             observation_trajectories, distance_method_obs)
-        full_clusters = cluster_full_trajectories(
+        full_clusters, linkage_matrix = cluster_full_trajectories(
             full_trajectories, distance_method_full)
 
         print("3. Generating visualizations...")
