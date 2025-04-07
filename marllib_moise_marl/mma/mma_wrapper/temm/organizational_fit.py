@@ -11,6 +11,7 @@ def compute_average_distance(trajectories: List, centroid: Union[np.ndarray, Lis
     if not trajectories:
         return 0.0
     total_distance = 0.0
+
     for traj in trajectories:
         traj_array = np.concatenate([np.array(x).flatten() for x in traj])
         centroid_array = np.concatenate(
@@ -20,7 +21,7 @@ def compute_average_distance(trajectories: List, centroid: Union[np.ndarray, Lis
 
 
 def compute_sof(
-    clusters: Dict[int, List],
+    full_clusters: Dict[int, List],
     centroids: Dict[int, List]
 ) -> float:
     """
@@ -32,9 +33,17 @@ def compute_sof(
     total_dist = 0.0
     total_count = 0
 
-    for cluster_id, trajectories in clusters.items():
+    num_actions = max(np.concatenate(
+        [[a for _, a in traj] for traj in trajectories for _, trajectories in full_clusters.items()])) + 1
+
+    for cluster_id, trajectories in full_clusters.items():
         centroid = centroids[cluster_id]
-        cluster_dist = compute_average_distance(trajectories, centroid)
+
+        encoded_action_trajectories = np.array([np.concatenate([np.concatenate(
+            (obs, np.eye(num_actions)[act])) for obs, act in traj]) for _, traj in trajectories])
+
+        cluster_dist = compute_average_distance(
+            encoded_action_trajectories, centroid)
         total_dist += cluster_dist * len(trajectories)
         total_count += len(trajectories)
 
@@ -42,6 +51,7 @@ def compute_sof(
 
     # Normalize assuming typical max distance ~10.0 (hyperparam or calibration possible)
     max_possible_dist = 10.0
+    print(0.0, 1.0 - avg_distance / max_possible_dist)
     sof_score = max(0.0, 1.0 - avg_distance / max_possible_dist)
 
     return round(sof_score, 3)
@@ -61,8 +71,6 @@ def compute_fof(
 
     for cluster_id, trajectories in observation_clusters.items():
         centroid_traj = observation_centroids[cluster_id]
-        if not centroid_traj:
-            continue
 
         for traj in trajectories:
             traj_array = np.concatenate(traj)
@@ -93,5 +101,7 @@ def compute_overall_fit(
         if sof + fof == 0:
             return 0.0
         return round((2 * sof * fof) / (sof + fof), 3)
+    elif aggregation_method == "sum":
+        return sof + fof
     else:
         raise ValueError(f"Unknown aggregation method: {aggregation_method}")

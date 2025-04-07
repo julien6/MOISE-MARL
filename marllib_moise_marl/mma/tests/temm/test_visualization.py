@@ -48,9 +48,8 @@ class TestVisualization(unittest.TestCase):
         ]
 
     def tearDown(self):
-        # if os.path.exists(self.figures_path):
-        #     shutil.rmtree(self.figures_path)
-        pass
+        if os.path.exists(self.figures_path):
+            shutil.rmtree(self.figures_path)
 
     def test_generate_dendrogram(self):
         output_file_path = generate_dendrogram(self.full_trajectories, os.path.join(self.figures_path, "full_dendrogram.png"))

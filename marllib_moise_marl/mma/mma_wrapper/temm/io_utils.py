@@ -32,20 +32,31 @@ def export_to_json(data: Any, file_path: str):
     """
     Save a dictionary or serializable object to a JSON file.
     Automatically creates parent directories if they don't exist.
+    Also converts numpy types (including keys) to standard JSON types.
     """
     os.makedirs(os.path.dirname(file_path), exist_ok=True)
 
-    def convert(obj):
-        if isinstance(obj, np.ndarray):
-            return obj.tolist()
-        elif isinstance(obj, dict):
-            return {k: convert(v) for k, v in obj.items()}
+    def sanitize(obj):
+        if isinstance(obj, dict):
+            return {k.item() if isinstance(k, (np.integer, np.floating)) else k: sanitize(v) for k, v in obj.items()}
         elif isinstance(obj, list):
-            return [convert(i) for i in obj]
+            return [sanitize(i) for i in obj]
         elif isinstance(obj, tuple):
-            return tuple(convert(i) for i in obj)
+            return tuple(sanitize(i) for i in obj)
+        elif isinstance(obj, np.ndarray):
+            return obj.tolist()
+        elif isinstance(obj, np.integer):
+            return int(obj)
+        elif isinstance(obj, np.floating):
+            return float(obj)
+        elif isinstance(obj, np.bool_):
+            return bool(obj)
+        elif isinstance(obj, np.generic):
+            return obj.item()
         else:
             return obj
 
+    sanitized_data = sanitize(data)
+
     with open(file_path, 'w') as f:
-        json.dump(convert(data), f, indent=4)
+        json.dump(sanitized_data, f, indent=4)

@@ -33,8 +33,8 @@ class TestInferringRoles(unittest.TestCase):
         roles = extract_roles_from_trajectories(self.mock_clusters)
         summarized = summarize_roles(roles, min_rule_weight=0.5)
         self.assertIsInstance(summarized, dict)
-        for cluster_id, ruleset in summarized.items():
-            for rule in ruleset:
+        for cluster_id, role in summarized.items():
+            for rule in role["rules"]:
                 self.assertGreaterEqual(rule["weight"], 0.5)
 
 

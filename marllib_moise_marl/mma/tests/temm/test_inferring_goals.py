@@ -25,9 +25,9 @@ class TestInferringGoals(unittest.TestCase):
         goals = extract_goals_from_trajectories(self.mock_clusters)
         self.assertIsInstance(goals, dict)
         self.assertIn(0, goals)
-        self.assertIsInstance(goals[0], list)
-        self.assertGreater(len(goals[0]), 0)
-        for obs in goals[0]:
+        self.assertIsInstance(goals[0], dict)
+        self.assertGreater(len(goals[0]["observations"]), 0)
+        for obs in goals[0]["observations"]:
             self.assertIn("observation", obs)
             self.assertIn("weight", obs)
 
@@ -35,10 +35,10 @@ class TestInferringGoals(unittest.TestCase):
         goals = extract_goals_from_trajectories(self.mock_clusters)
         summarized = summarize_goals(goals, min_goal_weight=0.05)
         self.assertIsInstance(summarized, dict)
-        for cluster_id, goal_list in summarized.items():
-            for g in goal_list:
-                self.assertGreaterEqual(g["weight"], 0.05)
-                self.assertIn("observation", g)
+        for cluster_id, goal in summarized.items():
+            for observation in goal["observations"]:
+                self.assertGreaterEqual(observation["weight"], 0.05)
+                self.assertIn("observation", observation)
 
 
 if __name__ == "__main__":

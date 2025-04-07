@@ -17,10 +17,21 @@ def compute_centroids_per_cluster(clusters: Dict[int, List[Any]], mode: str = "m
     Returns:
         Dict[int, Any]: Dictionary mapping cluster_id to its centroid.
     """
+    print("---===>>> ", clusters)
+
+    num_actions = max(np.concatenate(
+        [[a for _, a in traj] for _, trajectories in clusters.items() for traj in trajectories])) + 1
+    
+    print("---===>>> ", num_actions)
+    print("---===>>> ", encoded_action_trajectories)
+
+    encoded_action_trajectories = np.array([np.concatenate([np.concatenate((obs, np.eye(num_actions)[act])) for obs, act in traj]) for _, trajectories in clusters.items() for traj in trajectories])
+
+
     centroids = {}
     for cluster_id, elements in clusters.items():
         if mode == "mean":
-            centroids[cluster_id] = compute_mean_centroid(elements)
+            centroids[cluster_id] = compute_mean_centroid(encoded_action_trajectories)
         elif mode == "fuzzy_lcs":
             centroids[cluster_id] = compute_fuzzy_lcs_centroid(elements)
         else:

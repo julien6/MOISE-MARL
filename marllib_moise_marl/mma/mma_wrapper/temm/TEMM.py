@@ -27,6 +27,12 @@ from mma_wrapper.temm.organizational_fit import compute_sof, compute_fof, comput
 class TEMM:
     def __init__(self, analysis_results_path: str = "./"):
         self.analysis_results_path = analysis_results_path
+        os.makedirs(os.path.join(self.analysis_results_path,
+                                 "trajectories"), exist_ok=True)
+        os.makedirs(os.path.join(self.analysis_results_path,
+                                 "figures"), exist_ok=True)
+        os.makedirs(os.path.join(self.analysis_results_path,
+                                 "inferred_organizational_specifications"), exist_ok=True)
 
     def run_global(self,
                    distance_method_action="euclidean",
@@ -56,15 +62,26 @@ class TEMM:
             full_trajectories, distance_method_full)
 
         print("3. Generating visualizations...")
-        generate_actions_dendrogram(action_clusters)
-        generate_observations_dendrogram(observation_clusters)
-        generate_dendrogram(full_clusters)
-        visualize_action_pca(action_trajectories)
-        visualize_observation_pca(observation_trajectories)
-        visualize_transition_pca(full_trajectories)
-        visualize_action_trajectory(action_trajectories)
-        visualize_observation_trajectory(observation_trajectories)
-        visualize_trajectory(full_trajectories)
+        generate_actions_dendrogram(action_trajectories, save_path=os.path.join(
+            self.analysis_results_path, "figures", "actions_dendrogram.png"))
+        generate_observations_dendrogram(observation_trajectories, save_path=os.path.join(
+            self.analysis_results_path, "figures", "observations_dendrogram.png"))
+        generate_dendrogram(full_trajectories, save_path=os.path.join(
+            self.analysis_results_path, "figures", "full_dendrogram.png"))
+        visualize_action_pca(action_trajectories, save_path=os.path.join(
+            self.analysis_results_path, "figures", "action_pca.png"))
+        visualize_observation_pca(observation_trajectories, save_path=os.path.join(
+            self.analysis_results_path, "figures", "observation_pca.png"))
+        visualize_transition_pca(full_trajectories, save_path=os.path.join(
+            self.analysis_results_path, "figures", "transition_pca.png"))
+        visualize_action_trajectory(action_trajectories, save_path=os.path.join(
+            self.analysis_results_path, "figures", "action_trajectory_pca.png"))
+        visualize_observation_trajectory(observation_trajectories, save_path=os.path.join(
+            self.analysis_results_path, "figures", "observation_trajectory_pca.png"))
+        visualize_trajectory(full_trajectories, save_path=os.path.join(
+            self.analysis_results_path, "figures", "full_trajectory_pca.png"))
+
+        print("---->>> ", full_clusters)
 
         print("4. Computing centroids...")
         action_centroids = compute_centroids_per_cluster(
@@ -80,6 +97,9 @@ class TEMM:
         selected_for_goals = select_near_centroid_trajectories(
             observation_clusters, observation_centroids, inclusion_radius)
 
+        print("---->>> ", selected_for_goals)
+        print("---->>> ", selected_for_roles)
+
         print("6. Extracting roles and goals...")
         inferred_roles = extract_roles_from_trajectories(selected_for_roles)
         inferred_goals = extract_goals_from_trajectories(selected_for_goals)
@@ -89,9 +109,9 @@ class TEMM:
         summarized_goals = summarize_goals(inferred_goals, min_goal_weight)
 
         export_to_json(summarized_roles, os.path.join(
-            self.analysis_results_path, "inferred_roles_summary.json"))
+            self.analysis_results_path, "inferred_organizational_specifications", "inferred_roles_summary.json"))
         export_to_json(summarized_goals, os.path.join(
-            self.analysis_results_path, "inferred_goals_summary.json"))
+            self.analysis_results_path, "inferred_organizational_specifications", "inferred_goals_summary.json"))
 
         print("8. Computing organizational fit scores...")
         sof = compute_sof(full_clusters, full_centroids)

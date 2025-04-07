@@ -1,5 +1,6 @@
 # test_TEMM.py
 
+import traceback
 import unittest
 import os
 import json
@@ -13,9 +14,13 @@ class TestTEMMIntegration(unittest.TestCase):
 
     def setUp(self):
         # Create a temporary directory with synthetic trajectory data
-        self.temp_path = "./temp_test_results"
-        os.makedirs(os.path.join(self.temp_path,
-                    "trajectories"), exist_ok=True)
+        self.temp_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), "temp_test_results")
+
+        os.makedirs(self.temp_path, exist_ok=True)
+
+        # Init TEMM instance
+        self.temm = TEMM(self.temp_path)
 
         # Create mock trajectories for two agents and two episodes
         for i in range(2):
@@ -32,9 +37,6 @@ class TestTEMMIntegration(unittest.TestCase):
             with open(os.path.join(self.temp_path, "trajectories", f"trajectories_{i}.json"), "w") as f:
                 json.dump(data, f)
 
-        # Init TEMM instance
-        self.temm = TEMM(self.temp_path)
-
     def test_run_global(self):
         try:
             self.temm.run_global(
@@ -47,13 +49,14 @@ class TestTEMMIntegration(unittest.TestCase):
                 min_goal_weight=0.0
             )
         except Exception as e:
-            self.fail(f"run_global() raised an unexpected exception: {e}")
+            self.fail(
+                f"run_global() raised an unexpected exception: {e} -> {traceback.format_exc()}")
 
         # Check that output JSONs are generated
         roles_file = os.path.join(
-            self.temp_path, "inferred_roles_summary.json")
+            self.temp_path, "inferred_organizational_specifications", "inferred_roles_summary.json")
         goals_file = os.path.join(
-            self.temp_path, "inferred_goals_summary.json")
+            self.temp_path, "inferred_organizational_specifications", "inferred_goals_summary.json")
         self.assertTrue(os.path.exists(roles_file))
         self.assertTrue(os.path.exists(goals_file))
 

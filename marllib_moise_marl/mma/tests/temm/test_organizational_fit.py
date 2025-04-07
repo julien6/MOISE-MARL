@@ -39,7 +39,7 @@ class TestOrganizationalFit(unittest.TestCase):
         self.assertAlmostEqual(of, 0.85)
 
         of_sum = compute_overall_fit(sof, fof, aggregation_method="sum")
-        self.assertEqual(of_sum, 1.7)
+        self.assertEqual(round(of_sum, 2), 1.7)
 
 
 if __name__ == "__main__":

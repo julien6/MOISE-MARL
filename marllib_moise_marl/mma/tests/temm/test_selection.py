@@ -6,7 +6,7 @@ from mma_wrapper.temm.selection import select_near_centroid_trajectories
 class TestSelection(unittest.TestCase):
 
     def test_select_near_centroid_vector(self):
-        # Cluster 0 has two trajectories
+        # Cluster 0 has three trajectories
         clusters = {
             0: [
                 [np.array([1.0, 1.0]), np.array([2.0, 2.0])],

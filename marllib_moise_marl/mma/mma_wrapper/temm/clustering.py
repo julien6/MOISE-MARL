@@ -50,7 +50,7 @@ def cluster_trajectories_from_action(action_trajectories: List[List[int]], dista
     labels = fcluster(linkage_matrix, t=1.0, criterion='distance')
     clusters: Dict[int, List[int]] = {}
     for idx, label in enumerate(labels):
-        clusters.setdefault(label, []).append(idx)
+        clusters.setdefault(label, []).append(action_trajectories[idx])
     return clusters, linkage_matrix
 
 
@@ -70,7 +70,7 @@ def cluster_trajectories_from_observation(observation_trajectories: List[List[np
     labels = fcluster(linkage_matrix, t=1.0, criterion='distance')
     clusters: Dict[int, List[int]] = {}
     for idx, label in enumerate(labels):
-        clusters.setdefault(label, []).append(idx)
+        clusters.setdefault(label, []).append(observation_trajectories[idx])
     return clusters, linkage_matrix
 
 
@@ -94,5 +94,5 @@ def cluster_full_trajectories(full_trajectories: List[List[Tuple[np.ndarray, int
     labels = fcluster(linkage_matrix, t=1.0, criterion='distance')
     clusters: Dict[int, List[int]] = {}
     for idx, label in enumerate(labels):
-        clusters.setdefault(label, []).append(idx)
+        clusters.setdefault(label, []).append(full_trajectories[idx])
     return clusters, linkage_matrix
