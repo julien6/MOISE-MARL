@@ -5,6 +5,20 @@ from typing import Dict, List, Any, Union
 from collections import Counter
 from scipy.spatial.distance import euclidean
 
+def compute_action_centroids_per_cluster(clusters: Dict[int, List[Any]], mode: str = "mean") -> Dict[int, Any]:
+    num_actions = max(np.concatenate(
+    [[a for a in traj] for _, trajectories in clusters.items() for traj in trajectories])) + 1
+    action_encoded_clusters = {cluster_label: [np.concatenate([np.eye(num_actions)[action] for action in action_trajectory]) for action_trajectory in action_trajectories] for cluster_label, action_trajectories in clusters.items()}
+    return compute_centroids_per_cluster(action_encoded_clusters, mode=mode)
+    
+def compute_observation_centroids_per_cluster(clusters: Dict[int, List[Any]], mode: str = "mean") -> Dict[int, Any]:
+    return compute_centroids_per_cluster(clusters, mode=mode)
+
+def compute_full_centroids_per_cluster(clusters: Dict[int, List[Any]], mode: str = "mean") -> Dict[int, Any]:
+    num_actions = max(np.concatenate(
+    [[a for o, a in traj] for _, trajectories in clusters.items() for traj in trajectories])) + 1
+    action_encoded_full_clusters = {cluster_label: [np.concatenate([np.concatenate((observation, np.eye(num_actions)[action])) for observation, action in action_trajectory]) for action_trajectory in action_trajectories] for cluster_label, action_trajectories in clusters.items()}
+    return compute_centroids_per_cluster(action_encoded_full_clusters, mode=mode)
 
 def compute_centroids_per_cluster(clusters: Dict[int, List[Any]], mode: str = "mean") -> Dict[int, Any]:
     """
@@ -17,21 +31,10 @@ def compute_centroids_per_cluster(clusters: Dict[int, List[Any]], mode: str = "m
     Returns:
         Dict[int, Any]: Dictionary mapping cluster_id to its centroid.
     """
-    print("---===>>> ", clusters)
-
-    num_actions = max(np.concatenate(
-        [[a for _, a in traj] for _, trajectories in clusters.items() for traj in trajectories])) + 1
-    
-    print("---===>>> ", num_actions)
-    print("---===>>> ", encoded_action_trajectories)
-
-    encoded_action_trajectories = np.array([np.concatenate([np.concatenate((obs, np.eye(num_actions)[act])) for obs, act in traj]) for _, trajectories in clusters.items() for traj in trajectories])
-
-
     centroids = {}
     for cluster_id, elements in clusters.items():
         if mode == "mean":
-            centroids[cluster_id] = compute_mean_centroid(encoded_action_trajectories)
+            centroids[cluster_id] = compute_mean_centroid(elements)
         elif mode == "fuzzy_lcs":
             centroids[cluster_id] = compute_fuzzy_lcs_centroid(elements)
         else:

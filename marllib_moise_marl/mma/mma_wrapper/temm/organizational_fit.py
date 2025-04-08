@@ -8,16 +8,11 @@ def compute_average_distance(trajectories: List, centroid: Union[np.ndarray, Lis
     """
     Compute average Euclidean distance between each trajectory and the cluster centroid.
     """
-    if not trajectories:
-        return 0.0
     total_distance = 0.0
 
     for traj in trajectories:
-        traj_array = np.concatenate([np.array(x).flatten() for x in traj])
-        centroid_array = np.concatenate(
-            [np.array(x).flatten() for x in centroid])
-        total_distance += np.linalg.norm(traj_array - centroid_array)
-    return total_distance / len(trajectories)
+        total_distance += np.linalg.norm(traj - centroid)
+    return total_distance / len(trajectories) if len(trajectories) > 0 else 1
 
 
 def compute_sof(
@@ -34,24 +29,23 @@ def compute_sof(
     total_count = 0
 
     num_actions = max(np.concatenate(
-        [[a for _, a in traj] for traj in trajectories for _, trajectories in full_clusters.items()])) + 1
+        [[a for _, a in traj] for _, trajectories in full_clusters.items() for traj in trajectories])) + 1
 
     for cluster_id, trajectories in full_clusters.items():
         centroid = centroids[cluster_id]
 
         encoded_action_trajectories = np.array([np.concatenate([np.concatenate(
-            (obs, np.eye(num_actions)[act])) for obs, act in traj]) for _, traj in trajectories])
+            (obs, np.eye(num_actions)[act])) for obs, act in traj]) for traj in trajectories])
 
         cluster_dist = compute_average_distance(
             encoded_action_trajectories, centroid)
         total_dist += cluster_dist * len(trajectories)
         total_count += len(trajectories)
 
-    avg_distance = total_dist / total_count if total_count else 0.0
+    avg_distance = total_dist / (total_count if total_count else 1)
 
     # Normalize assuming typical max distance ~10.0 (hyperparam or calibration possible)
     max_possible_dist = 10.0
-    print(0.0, 1.0 - avg_distance / max_possible_dist)
     sof_score = max(0.0, 1.0 - avg_distance / max_possible_dist)
 
     return round(sof_score, 3)
@@ -73,12 +67,10 @@ def compute_fof(
         centroid_traj = observation_centroids[cluster_id]
 
         for traj in trajectories:
-            traj_array = np.concatenate(traj)
-            centroid_array = np.concatenate(centroid_traj)
-            total_dist += np.linalg.norm(traj_array - centroid_array)
+            total_dist += np.linalg.norm(traj - centroid_traj)
             total_count += 1
 
-    avg_distance = total_dist / total_count if total_count else 0.0
+    avg_distance = total_dist / (total_count if total_count else 1)
     max_possible_dist = 10.0
     fof_score = max(0.0, 1.0 - avg_distance / max_possible_dist)
 

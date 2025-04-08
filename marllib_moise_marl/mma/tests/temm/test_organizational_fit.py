@@ -10,14 +10,24 @@ class TestOrganizationalFit(unittest.TestCase):
     def setUp(self):
         # Mock cluster with trajectories: each trajectory is a list of one-hot vectors
         self.mock_clusters = {
-            0: [np.array([[1, 0], [0, 1]]), np.array([[1, 0], [0, 1]])],
-            1: [np.array([[0, 1], [1, 0]]), np.array([[0, 1], [1, 0]])]
+            0: [[np.array([[1, 0], 1]), np.array([[1, 0], 1])]],
+            1: [[np.array([[0, 1], 0]), np.array([[0, 1], 0])]]
         }
 
         # Centroids are mean trajectories (same shape as individual trajectories)
         self.mock_centroids = {
-            0: np.array([[1, 0], [0, 1]]),
-            1: np.array([[0, 1], [1, 0]])
+            0: np.array([1, 0, 0, 1, 1, 0, 0, 1]),
+            1: np.array([0, 1, 1, 0, 0, 1, 1, 0])
+        }
+
+        self.mock_observation_clusters = {
+            0: [[np.array([1, 0, 1, 0])], [np.array([2, 0, 2, 0])]],
+            1: [[np.array([0, 1, 0, 1])]]
+        }
+
+        self.mock_observation_centroids = {
+            0: np.array([1.5, 0, 1.5, 0]),
+            1: np.array([0, 1, 0, 1])
         }
 
     def test_compute_sof(self):
@@ -27,7 +37,8 @@ class TestOrganizationalFit(unittest.TestCase):
         self.assertLessEqual(sof, 1.0)
 
     def test_compute_fof(self):
-        fof = compute_fof(self.mock_clusters, self.mock_centroids)
+        fof = compute_fof(self.mock_observation_clusters,
+                          self.mock_observation_centroids)
         self.assertIsInstance(fof, float)
         self.assertGreaterEqual(fof, 0.0)
         self.assertLessEqual(fof, 1.0)

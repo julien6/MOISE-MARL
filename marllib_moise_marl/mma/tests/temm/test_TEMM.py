@@ -27,11 +27,11 @@ class TestTEMMIntegration(unittest.TestCase):
             data = {
                 "agent_0": [
                     ([1, 0, 0], 0),
-                    ([0, 1, 0], 1)
+                    ([0, 1, 0], 3)
                 ],
                 "agent_1": [
                     ([0, 0, 1], 1),
-                    ([1, 0, 0], 0)
+                    ([1, 0, 0], 2)
                 ]
             }
             with open(os.path.join(self.temp_path, "trajectories", f"trajectories_{i}.json"), "w") as f:

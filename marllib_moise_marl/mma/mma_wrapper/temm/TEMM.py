@@ -17,8 +17,8 @@ from mma_wrapper.temm.visualization import (
     visualize_observation_trajectory,
     visualize_trajectory
 )
-from mma_wrapper.temm.centroid import compute_centroids_per_cluster
-from mma_wrapper.temm.selection import select_near_centroid_trajectories
+from mma_wrapper.temm.centroid import compute_action_centroids_per_cluster, compute_observation_centroids_per_cluster, compute_full_centroids_per_cluster
+from mma_wrapper.temm.selection import select_near_centroid_observation_trajectories, select_near_centroid_full_trajectories
 from mma_wrapper.temm.inferring_roles import extract_roles_from_trajectories, summarize_roles
 from mma_wrapper.temm.inferring_goals import extract_goals_from_trajectories, summarize_goals
 from mma_wrapper.temm.organizational_fit import compute_sof, compute_fof, compute_overall_fit
@@ -81,24 +81,19 @@ class TEMM:
         visualize_trajectory(full_trajectories, save_path=os.path.join(
             self.analysis_results_path, "figures", "full_trajectory_pca.png"))
 
-        print("---->>> ", full_clusters)
-
         print("4. Computing centroids...")
-        action_centroids = compute_centroids_per_cluster(
+        action_centroids = compute_action_centroids_per_cluster(
             action_clusters, mode=centroid_mode)
-        observation_centroids = compute_centroids_per_cluster(
+        observation_centroids = compute_observation_centroids_per_cluster(
             observation_clusters, mode=centroid_mode)
-        full_centroids = compute_centroids_per_cluster(
+        full_centroids = compute_full_centroids_per_cluster(
             full_clusters, mode=centroid_mode)
 
         print("5. Selecting near-centroid trajectories...")
-        selected_for_roles = select_near_centroid_trajectories(
+        selected_for_roles = select_near_centroid_full_trajectories(
             full_clusters, full_centroids, inclusion_radius)
-        selected_for_goals = select_near_centroid_trajectories(
+        selected_for_goals = select_near_centroid_observation_trajectories(
             observation_clusters, observation_centroids, inclusion_radius)
-
-        print("---->>> ", selected_for_goals)
-        print("---->>> ", selected_for_roles)
 
         print("6. Extracting roles and goals...")
         inferred_roles = extract_roles_from_trajectories(selected_for_roles)
@@ -114,8 +109,8 @@ class TEMM:
             self.analysis_results_path, "inferred_organizational_specifications", "inferred_goals_summary.json"))
 
         print("8. Computing organizational fit scores...")
-        sof = compute_sof(full_clusters, full_centroids)
-        fof = compute_fof(observation_clusters, observation_centroids)
+        sof = compute_sof(selected_for_roles, full_centroids)
+        fof = compute_fof(selected_for_goals, observation_centroids)
         of = compute_overall_fit(sof, fof)
 
         print(f"Structural Fit (SOF): {sof:.3f}")

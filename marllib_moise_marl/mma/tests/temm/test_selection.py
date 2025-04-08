@@ -20,8 +20,8 @@ class TestSelection(unittest.TestCase):
             0: [np.array([1.05, 1.05]), np.array([2.05, 2.05])]
         }
 
-        selected = select_near_centroid_trajectories(
-            clusters, centroids, inclusion_radius=0.5)
+        selected = select_near_centroid_trajectories({}, 0,
+            clusters[0], centroids, inclusion_radius=0.5)
 
         self.assertIn(0, selected)
         self.assertEqual(len(selected[0]), 2)
@@ -37,8 +37,8 @@ class TestSelection(unittest.TestCase):
             0: [np.array([3.0]), np.array([4.0])]
         }
 
-        selected = select_near_centroid_trajectories(
-            clusters, centroids, inclusion_radius=10.0)
+        selected = select_near_centroid_trajectories({}, 0,
+            clusters[0], centroids, inclusion_radius=10.0)
 
         self.assertEqual(len(selected[0]), 2)
 
@@ -53,8 +53,8 @@ class TestSelection(unittest.TestCase):
             0: [np.array([3.0]), np.array([4.0])]
         }
 
-        selected = select_near_centroid_trajectories(
-            clusters, centroids, inclusion_radius=0.01)
+        selected = select_near_centroid_trajectories({}, 0,
+            clusters[0], centroids, inclusion_radius=0.01)
 
         self.assertEqual(len(selected[0]), 0)
 
