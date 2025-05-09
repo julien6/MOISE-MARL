@@ -17,3 +17,4 @@ outputs/
 models/
 checkpoint
 marllib_moise_marl/**/analysis_results/*
+marllib_moise_marl/docs
