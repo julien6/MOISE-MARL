@@ -2,7 +2,8 @@
 
 <p align="center">
        <a href= "https://github.com/FLAIROx/JaxMARL/blob/main/LICENSE">
-        <img src="https://img.shields.io/badge/license-MIT-blue" /></a>
+       <a href= "https://github.com/FLAIROx/JaxMARL/blob/main/LICENSE">
+        <img src="https://img.shields.io/badge/license-Apache2.0-blue.svg" /></a>
        <a href= "https://colab.research.google.com/github/FLAIROx/JaxMARL/blob/main/jaxmarl/tutorials/JaxMARL_Walkthrough.ipynb">
        <a href= "https://arxiv.org/abs/2503.23615">
         <img src="https://img.shields.io/badge/arXiv-2503.10090-b31b1b.svg" /></a>
