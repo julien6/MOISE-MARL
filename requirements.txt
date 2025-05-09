@@ -6,3 +6,8 @@ keyboard
 orbax
 protobuf==3.20.*
 scikit-learn
+sphinx
+sphinx-autodoc-typehints
+sphinx-rtd-theme
+furo
+pydata-sphinx-theme
