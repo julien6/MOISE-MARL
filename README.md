@@ -119,6 +119,10 @@ For example, to train/test agents using **MAPPO** on the **Overcooked AI** envir
 clear ; ./clean.sh ; python overcooked.py
 ```
 
+### API Documentation
+
+/home/soulej/Documents/MOISE-MARL/docs/index.html
+
 ---
 
 ### Basic MOISE+MARL API Usage for MARLlib 🖥️
