@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>mma_wrapper.organizational_specification_logic &#8212; MOISE+MARL 0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=6625fa76" />
+    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css?v=039e1c02" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js?v=e031e9a9"></script>
+    <script src="../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../_static/sphinx_highlight.js?v=4825356b"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for mma_wrapper.organizational_specification_logic</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">copy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">inspect</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">random</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">mma_wrapper</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">mma_wrapper.label_manager</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mma_wrapper.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">observation</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">pattern_trajectory</span><span class="p">,</span> <span class="n">trajectory</span><span class="p">,</span> <span class="n">trajectory_pattern_str</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mma_wrapper.trajectory_pattern</span><span class="w"> </span><span class="kn">import</span> <span class="n">trajectory_pattern</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mma_wrapper.label_manager</span><span class="w"> </span><span class="kn">import</span> <span class="n">label_manager</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mma_wrapper.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_function</span><span class="p">,</span> <span class="n">dump_function</span>
+
+
+<div class="viewcode-block" id="os_logic"><a class="viewcode-back" href="../../modules.html#mma_wrapper.organizational_specification_logic.os_logic">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">os_logic</span><span class="p">:</span>
+
+<div class="viewcode-block" id="os_logic.to_dict"><a class="viewcode-back" href="../../modules.html#mma_wrapper.organizational_specification_logic.os_logic.to_dict">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+<div class="viewcode-block" id="os_logic.from_dict"><a class="viewcode-back" href="../../modules.html#mma_wrapper.organizational_specification_logic.os_logic.from_dict">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_dict</span><span class="p">(</span><span class="n">d</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;os_logic&#39;</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">hash</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">())</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="vm">__dict__</span></div>
+
+
+<div class="viewcode-block" id="role_logic"><a class="viewcode-back" href="../../modules.html#mma_wrapper.organizational_specification_logic.role_logic">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">role_logic</span><span class="p">(</span><span class="n">os_logic</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Implements both Role Action Guide (RAG) and Role Reward Guide (RRG) as a common way</span>
+<span class="sd">    to restrict/guide agents to expected behavior as a role.</span>
+
+<span class="sd">        **rag : trajectory x observation -&gt; powerset(action x float)**</span>
+
+<span class="sd">            A RAG outputs a list of authorized (action, weight) couples from a trajectory and an</span>
+<span class="sd">            observation to restrict next possible agent&#39;s actions.</span>
+
+<span class="sd">        **rrg = trajectory x observation x action -&gt; float**</span>
+
+<span class="sd">            A RRG outputs a reward indicating how far an agent is from expected behavior</span>
+<span class="sd">            according to previous trajectory and the received observation and the made action.</span>
+
+<span class="sd">        *Note: When RRG not provided, RRG is derived from RAG by default considering a default</span>
+<span class="sd">        bonus/malus reward when the chosen actions in trajectory do not comply with authorized ones*</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">pattern_rules</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">trajectory_pattern_str</span><span class="p">,</span>
+                                           <span class="n">label</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">label</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">function_rules</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span>
+                     <span class="n">trajectory</span><span class="p">,</span> <span class="n">observation</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="s1">&#39;label_manager&#39;</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">action</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">label_manager</span><span class="p">:</span> <span class="n">label_manager</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">reward_reshape_standard</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">100</span><span class="p">):</span>
+        <span class="n">manager</span> <span class="o">=</span> <span class="n">label_manager</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pattern_rules</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">trajectory_pattern_str</span><span class="p">,</span>
+                                       <span class="n">label</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">label</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">{}</span> <span class="k">if</span> <span class="n">pattern_rules</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">pattern_rules</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">script_rules</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span>
+            <span class="n">trajectory</span><span class="p">,</span> <span class="n">observation</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="s1">&#39;label_manager&#39;</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">action</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]]]</span> <span class="o">=</span> <span class="p">[]</span> <span class="k">if</span> <span class="n">function_rules</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">function_rules</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">label_manager</span><span class="p">:</span> <span class="s1">&#39;label_manager&#39;</span> <span class="o">=</span> <span class="n">manager</span> <span class="k">if</span> <span class="n">manager</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">mma_wrapper</span><span class="o">.</span><span class="n">label_manager</span><span class="o">.</span><span class="n">label_manager</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">inspect</span><span class="o">.</span><span class="n">isclass</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">label_manager</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">label_manager</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">label_manager</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reward_reshape_standard</span> <span class="o">=</span> <span class="n">reward_reshape_standard</span>
+
+<div class="viewcode-block" id="role_logic.register_pattern_rule"><a class="viewcode-back" href="../../modules.html#mma_wrapper.organizational_specification_logic.role_logic.register_pattern_rule">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">register_pattern_rule</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">trajectory_pattern_str</span><span class="p">:</span> <span class="n">trajectory_pattern_str</span><span class="p">,</span> <span class="n">observation_label</span><span class="p">:</span> <span class="n">label</span><span class="p">,</span> <span class="n">weighted_actions</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">label</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Register a pattern-based trajectory (TP) rule to the current TP rule register.</span>
+<span class="sd">        A TP rule is triggered when an agent&#39;s trajectory and received observation do match its &#39;trajectory_pattern_str&#39; and &#39;observation&#39; resulting in a list of weighted actions.</span>
+<span class="sd">        Args:</span>
+<span class="sd">            trajectory_pattern_str: the TP to register into forming the first condition of the TP rule</span>
+<span class="sd">            observation_label: the observation label to register into forming the second condition of the TP rule</span>
+<span class="sd">            weighted_actions: the weighted actions to be outputed when the two conditions are satisfied</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">trajectory_pattern_str</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">trajectory_pattern_str</span> <span class="o">=</span> <span class="s2">&quot;any&quot;</span>
+        <span class="k">if</span> <span class="n">observation_label</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">observation_label</span> <span class="o">=</span> <span class="s2">&quot;any&quot;</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">trajectory_pattern_str</span><span class="p">,</span> <span class="n">observation_label</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pattern_rules</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pattern_rules</span><span class="p">[(</span><span class="n">trajectory_pattern_str</span><span class="p">,</span>
+                                <span class="n">observation_label</span><span class="p">)]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pattern_rules</span><span class="p">[(</span><span class="n">trajectory_pattern_str</span><span class="p">,</span> <span class="n">observation_label</span><span class="p">)</span>
+                           <span class="p">]</span> <span class="o">+=</span> <span class="n">weighted_actions</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+<div class="viewcode-block" id="role_logic.register_pattern_rules"><a class="viewcode-back" href="../../modules.html#mma_wrapper.organizational_specification_logic.role_logic.register_pattern_rules">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">register_pattern_rules</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rules</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">trajectory_pattern_str</span><span class="p">,</span> <span class="n">label</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">label</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]]]):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Register a list of TP rules to the current TP rule register</span>
+<span class="sd">        Args:</span>
+<span class="sd">            rules: The TP rules to be registered as a list of ((trajectory pattern, observation label), weighted actions) couples</span>
+<span class="sd">        Return</span>
+<span class="sd">            None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">trajectory_pattern_str</span><span class="p">,</span> <span class="n">observation</span><span class="p">),</span> <span class="n">weighted_actions</span> <span class="ow">in</span> <span class="n">rules</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">register_pattern_rule</span><span class="p">(</span>
+                <span class="n">trajectory_pattern_str</span><span class="p">,</span> <span class="n">observation</span><span class="p">,</span> <span class="n">weighted_actions</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+<div class="viewcode-block" id="role_logic.registrer_script_rule"><a class="viewcode-back" href="../../modules.html#mma_wrapper.organizational_specification_logic.role_logic.registrer_script_rule">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">registrer_script_rule</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">function</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">trajectory</span><span class="p">,</span> <span class="n">observation</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">label_manager</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">action</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]],</span> <span class="n">save_source</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Register a script-based rule.</span>
+<span class="sd">        A script-based rule is a function that outputs weighted actions from a raw trajectory and a raw observation.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            function: the callable function to be added in the register</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">script_rules</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">function</span><span class="p">,</span> <span class="n">save_source</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+<div class="viewcode-block" id="role_logic.registrer_script_rules"><a class="viewcode-back" href="../../modules.html#mma_wrapper.organizational_specification_logic.role_logic.registrer_script_rules">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">registrer_script_rules</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">functions</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="n">trajectory</span><span class="p">,</span> <span class="n">observation</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">label_manager</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">action</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]]]):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Register a list of script-based rules</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            functions: the list of script-based rules to be added in the register</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">function</span> <span class="ow">in</span> <span class="n">functions</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">register_pattern_rule</span><span class="p">(</span><span class="n">function</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+<div class="viewcode-block" id="role_logic.next_weighted_actions"><a class="viewcode-back" href="../../modules.html#mma_wrapper.organizational_specification_logic.role_logic.next_weighted_actions">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">next_weighted_actions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">trajectory</span><span class="p">:</span> <span class="n">trajectory</span><span class="p">,</span> <span class="n">observation</span><span class="p">:</span> <span class="n">observation</span><span class="p">,</span> <span class="n">agent_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">merge_mode</span><span class="o">=</span><span class="s1">&#39;additive&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">label</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]:</span>
+
+        <span class="n">weighted_actions</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pattern_rules</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># dealing with pattern-based trajectory rules</span>
+            <span class="n">patternified_trajectory_str</span> <span class="o">=</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">_obs</span><span class="si">}</span><span class="s1">,</span><span class="si">{</span><span class="n">_act</span><span class="si">}</span><span class="s1">&#39;</span> <span class="k">for</span> <span class="n">_obs</span><span class="p">,</span> <span class="n">_act</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">label_manager</span><span class="o">.</span><span class="n">label_trajectory</span><span class="p">(</span>
+                <span class="n">trajectory</span><span class="o">=</span><span class="n">trajectory</span><span class="p">)])</span>
+            <span class="n">observation_label</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">label_manager</span><span class="o">.</span><span class="n">label_observation</span><span class="p">(</span><span class="n">observation</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">_pattern_trajectory_str</span><span class="p">,</span> <span class="n">_observation_label</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pattern_rules</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">trajectory_pattern</span><span class="p">(</span><span class="n">_pattern_trajectory_str</span><span class="p">)</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">patternified_trajectory_str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">trajectory_pattern</span><span class="p">(</span><span class="n">_observation_label</span><span class="p">)</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">observation_label</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">merge_mode</span> <span class="o">==</span> <span class="s1">&#39;substractive&#39;</span><span class="p">:</span>
+                        <span class="n">weighted_actions</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">weighted_actions</span><span class="p">)</span> <span class="o">&amp;</span> <span class="nb">set</span><span class="p">([(</span><span class="bp">self</span><span class="o">.</span><span class="n">label_manager</span><span class="o">.</span><span class="n">unlabel_action</span><span class="p">(</span><span class="n">act_label</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span> <span class="n">weight</span><span class="p">)</span> <span class="k">for</span> <span class="n">act_label</span><span class="p">,</span> <span class="n">weight</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pattern_rules</span><span class="p">[(</span><span class="n">_pattern_trajectory_str</span><span class="p">,</span> <span class="n">_observation_label</span><span class="p">)]]))</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">weighted_actions</span><span class="o">.</span><span class="n">extend</span><span class="p">([(</span><span class="bp">self</span><span class="o">.</span><span class="n">label_manager</span><span class="o">.</span><span class="n">unlabel_action</span><span class="p">(</span><span class="n">act_label</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span> <span class="n">weight</span><span class="p">)</span> <span class="k">for</span> <span class="n">act_label</span><span class="p">,</span> <span class="n">weight</span> <span class="ow">in</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">pattern_rules</span><span class="p">[(</span><span class="n">_pattern_trajectory_str</span><span class="p">,</span> <span class="n">_observation_label</span><span class="p">)]])</span>
+
+        <span class="c1"># dealing with script-based trajectory rules</span>
+        <span class="k">for</span> <span class="n">_script_rule</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">script_rules</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">merge_mode</span> <span class="o">==</span> <span class="s1">&#39;substractive&#39;</span><span class="p">:</span>
+                <span class="n">weighted_actions</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">weighted_actions</span><span class="p">)</span> <span class="o">&amp;</span> <span class="nb">set</span><span class="p">(</span>
+                    <span class="n">_script_rule</span><span class="p">[</span><span class="mi">0</span><span class="p">](</span><span class="n">trajectory</span><span class="p">,</span> <span class="n">observation</span><span class="p">,</span> <span class="n">agent_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">label_manager</span><span class="p">)))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">next_weighted_actions</span> <span class="o">=</span> <span class="n">_script_rule</span><span class="p">[</span><span class="mi">0</span><span class="p">](</span><span class="n">trajectory</span><span class="p">,</span> <span class="n">observation</span><span class="p">,</span> <span class="n">agent_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">label_manager</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">next_weighted_actions</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+                    <span class="n">next_weighted_actions</span> <span class="o">=</span> <span class="p">[(</span><span class="n">next_weighted_actions</span><span class="p">,</span> <span class="mi">1</span><span class="p">)]</span>
+                <span class="n">weighted_actions</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">next_weighted_actions</span><span class="p">)</span>
+
+        <span class="n">weighted_actions</span> <span class="o">=</span> <span class="p">[(</span><span class="n">item</span><span class="p">,</span> <span class="mf">1.</span><span class="p">)</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span>
+            <span class="n">item</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">item</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">weighted_actions</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">weighted_actions</span></div>
+
+<div class="viewcode-block" id="role_logic.next_reward"><a class="viewcode-back" href="../../modules.html#mma_wrapper.organizational_specification_logic.role_logic.next_reward">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">next_reward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">trajectory</span><span class="p">:</span> <span class="n">trajectory</span><span class="p">,</span> <span class="n">observation</span><span class="p">:</span> <span class="n">observation</span><span class="p">,</span> <span class="n">action</span><span class="p">:</span> <span class="n">action</span><span class="p">,</span> <span class="n">agent_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute the next reward bonus/malus as the product of the &#39;relative_reward_reshape&#39; (or &#39;rrr&#39; strictly comprised between -1 and 1) and the &#39;reward_reshape_standard&#39; (or &#39;rss&#39; as a positive real number).</span>
+
+<span class="sd">        This bonus/malus is added to the &quot;vanilla&quot; reward once an agent has applied an action (after &#39;env.step&#39; but before &#39;return obs, rew, done, info&#39;) to guide it into adopting the role expected behavior.</span>
+
+<span class="sd">        This reward bonus/malus is computed from soft constraint solely (i.e constraint hardness/weight is strictly between -1 et 1):</span>
+<span class="sd">            - If in [0;1[  -&gt; the associated action should be selected with a weighted priority</span>
+<span class="sd">            - If in ]-1;0] -&gt; the associated action should not be selected with a weighted priority</span>
+
+<span class="sd">        The &#39;rrr&#39; mechanism can be overviewed as such:</span>
+<span class="sd">            - If there are no weighted actions that would have been expected to be made / not be made for the current observation and trajectory, then the agent is free to choose any action since the &#39;rrr&#39; is 0.</span>
+<span class="sd">            - Else if weighted actions would have been expected to be made / not be made for the current observation and trajectory, then</span>
+<span class="sd">                - If the agent has chosen an action outside of any of these unwanted/wanted actions</span>
+<span class="sd">                    - If some of actions are wanted to be chosen (at least a weight is strictly positive), then the &#39;rrr&#39; is the least bad penalty (strictly negative weights) if there are else -1: we want to penalize the agent for not having chosen a wanted action but not as much as unwanted actions</span>
+<span class="sd">                - If the agent has chosen action within these unwanted/wanted actions, the the &#39;rrr&#39; is directly equals to the weight: we want to penalize/reward the agent from a spectrum spanning from -1 to 1</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            trajectory: an agent&#39;s trajectory (containing raw observation and action objects)</span>
+<span class="sd">            observation: an agent&#39;s received raw observation</span>
+<span class="sd">            action: an agent&#39;s chosen action</span>
+<span class="sd">            agent_name: an agent&#39;s name (to be used conveniently in script)</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            float the bonus/malus to add in reward to entice the agent&#39;s into adopting the role&#39;s expected behavior</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">expected_weighted_actions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">next_weighted_actions</span><span class="p">(</span>
+            <span class="n">trajectory</span><span class="p">,</span> <span class="n">observation</span><span class="p">,</span> <span class="n">agent_name</span><span class="p">)</span>
+        <span class="n">softly_expected_weighted_actions</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="n">weight</span><span class="p">)</span> <span class="k">for</span> <span class="n">action</span><span class="p">,</span> <span class="n">weight</span> <span class="ow">in</span> <span class="n">expected_weighted_actions</span> <span class="k">if</span> <span class="o">-</span><span class="mi">1</span> <span class="o">&lt;</span> <span class="n">weight</span> <span class="ow">and</span> <span class="n">weight</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">softly_expected_weighted_actions</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">softly_expected_actions</span><span class="p">,</span> <span class="n">soft_weights</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span>
+                <span class="o">*</span><span class="n">softly_expected_weighted_actions</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">any</span><span class="p">([</span><span class="n">soft_weight</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">soft_weight</span> <span class="ow">in</span> <span class="n">soft_weights</span><span class="p">])</span> <span class="ow">and</span> <span class="n">action</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">softly_expected_actions</span><span class="p">:</span>
+                <span class="n">least_bad_penalty</span> <span class="o">=</span> <span class="p">[</span><span class="n">soft_weight</span> <span class="k">for</span> <span class="n">soft_weight</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span>
+                    <span class="n">soft_weights</span><span class="p">)</span> <span class="k">if</span> <span class="n">soft_weight</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">]</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">least_bad_penalty</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">least_bad_penalty</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">least_bad_penalty</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">least_bad_penalty</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">least_bad_penalty</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">reward_reshape_standard</span>
+            <span class="k">return</span> <span class="n">soft_weights</span><span class="p">[</span><span class="n">softly_expected_actions</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">action</span><span class="p">)]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">reward_reshape_standard</span>
+        <span class="k">return</span> <span class="mi">0</span></div>
+
+<div class="viewcode-block" id="role_logic.next_action"><a class="viewcode-back" href="../../modules.html#mma_wrapper.organizational_specification_logic.role_logic.next_action">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">next_action</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">trajectory</span><span class="p">:</span> <span class="n">trajectory</span><span class="p">,</span> <span class="n">observation</span><span class="p">:</span> <span class="n">observation</span><span class="p">,</span> <span class="n">agent_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">action</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Randomly selects the next action complying with hard constraint in the TP and script rules (i.e. the associated actions&#39; weights are greater or equal to 0).</span>
+
+<span class="sd">        This function is solely used to remplace the initial chosen action by another expected one (according to the hard constraints) during the training and evaluation steps.</span>
+<span class="sd">        If there are no associated hard constraints, the next action to be chosen is &#39;None&#39;, meaning the initial chosen action is kept for the rest of the step</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            trajectory: the agent&#39;s raw trajectory</span>
+<span class="sd">            observation: the agent&#39;s raw observation</span>
+<span class="sd">            agent_name: the agent&#39;s name</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            action: the chosen action</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">expected_weighted_actions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">next_weighted_actions</span><span class="p">(</span>
+            <span class="n">trajectory</span><span class="p">,</span> <span class="n">observation</span><span class="p">,</span> <span class="n">agent_name</span><span class="p">)</span>
+        <span class="n">strongly_expected_weighted_actions</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="n">weight</span><span class="p">)</span> <span class="k">for</span> <span class="n">action</span><span class="p">,</span> <span class="n">weight</span> <span class="ow">in</span> <span class="n">expected_weighted_actions</span> <span class="k">if</span> <span class="n">weight</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">strongly_expected_weighted_actions</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">strongly_expected_actions</span><span class="p">,</span> <span class="n">strong_weights</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span>
+                <span class="o">*</span><span class="n">strongly_expected_weighted_actions</span><span class="p">)</span>
+            <span class="n">next_action</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">choices</span><span class="p">(</span>
+                <span class="n">strongly_expected_actions</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">strong_weights</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">return</span> <span class="n">next_action</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="role_logic.to_dict"><a class="viewcode-back" href="../../modules.html#mma_wrapper.organizational_specification_logic.role_logic.to_dict">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;label_manager&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">label_manager</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(),</span>
+            <span class="s2">&quot;pattern_rules&quot;</span><span class="p">:</span> <span class="p">{</span><span class="sa">f</span><span class="s1">&#39;(</span><span class="si">{</span><span class="n">tp</span><span class="si">}</span><span class="s1">;</span><span class="si">{</span><span class="n">obs</span><span class="si">}</span><span class="s1">)&#39;</span><span class="p">:</span> <span class="n">_weighted_actions</span> <span class="k">for</span> <span class="p">(</span><span class="n">tp</span><span class="p">,</span> <span class="n">obs</span><span class="p">),</span> <span class="n">_weighted_actions</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pattern_rules</span><span class="o">.</span><span class="n">items</span><span class="p">()},</span>
+            <span class="s2">&quot;reward_reshape_standard&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">reward_reshape_standard</span><span class="p">,</span>
+            <span class="s2">&quot;script_rules&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">dump_function</span><span class="p">(</span><span class="n">_function</span><span class="p">,</span> <span class="n">_save_source</span><span class="p">,</span> <span class="n">_function_name</span><span class="p">,</span> <span class="n">_function_source</span><span class="p">)</span> <span class="k">for</span> <span class="n">_function</span><span class="p">,</span> <span class="n">_save_source</span><span class="p">,</span> <span class="n">_function_name</span><span class="p">,</span> <span class="n">_function_source</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">script_rules</span><span class="p">]</span>
+        <span class="p">}</span></div>
+
+<div class="viewcode-block" id="role_logic.from_dict"><a class="viewcode-back" href="../../modules.html#mma_wrapper.organizational_specification_logic.role_logic.from_dict">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_dict</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;role_logic&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">role_logic</span><span class="p">(</span><span class="n">pattern_rules</span><span class="o">=</span><span class="p">{</span><span class="nb">tuple</span><span class="p">(</span><span class="n">tp_obs</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;;&quot;</span><span class="p">)):</span> <span class="n">weighted_actions</span> <span class="k">for</span> <span class="n">tp_obs</span><span class="p">,</span> <span class="n">weighted_actions</span> <span class="ow">in</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;pattern_rules&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()},</span>
+                          <span class="n">function_rules</span><span class="o">=</span><span class="p">[</span><span class="n">load_function</span><span class="p">(</span><span class="n">_function_data</span><span class="p">)</span>
+                                          <span class="k">for</span> <span class="n">_function_data</span> <span class="ow">in</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;script_rules&quot;</span><span class="p">]],</span>
+                          <span class="n">label_manager</span><span class="o">=</span><span class="n">label_manager</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span>
+                              <span class="n">d</span><span class="p">[</span><span class="s2">&quot;label_manager&quot;</span><span class="p">]),</span>
+                          <span class="n">reward_reshape_standard</span><span class="o">=</span><span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;reward_reshape_standard&quot;</span><span class="p">,</span> <span class="mi">100</span><span class="p">))</span></div></div>
+
+
+<div class="viewcode-block" id="goal_logic"><a class="viewcode-back" href="../../modules.html#mma_wrapper.organizational_specification_logic.goal_logic">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">goal_logic</span><span class="p">(</span><span class="n">os_logic</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Implements Goal Reward Guide (GRG) a way to guide agents to find a way to reach a goal.</span>
+
+<span class="sd">        **grg: trajectory -&gt; float**</span>
+
+<span class="sd">            A GRG outputs a reward indicating how far an agent is from expected behavior</span>
+<span class="sd">            according to previous trajectory characterizing a goal.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">pattern_rules</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">trajectory_pattern_str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">function_rules</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="n">trajectory</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">label_manager</span><span class="p">],</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">label_manager</span><span class="p">:</span> <span class="n">label_manager</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">reward_reshape_standard</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">100</span><span class="p">):</span>
+        <span class="n">manager</span> <span class="o">=</span> <span class="n">label_manager</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pattern_rules</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">trajectory_pattern_str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="p">}</span> <span class="k">if</span> <span class="n">pattern_rules</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">pattern_rules</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">script_rules</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="n">trajectory</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="s1">&#39;label_manager&#39;</span><span class="p">],</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">]</span> <span class="k">if</span> <span class="n">function_rules</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">function_rules</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">label_manager</span><span class="p">:</span> <span class="s1">&#39;label_manager&#39;</span> <span class="o">=</span> <span class="n">manager</span> <span class="k">if</span> <span class="n">manager</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">mma_wrapper</span><span class="o">.</span><span class="n">label_manager</span><span class="o">.</span><span class="n">label_manager</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">inspect</span><span class="o">.</span><span class="n">isclass</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">label_manager</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">label_manager</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">label_manager</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reward_reshape_standard</span> <span class="o">=</span> <span class="n">reward_reshape_standard</span>
+
+<div class="viewcode-block" id="goal_logic.register_pattern_rule"><a class="viewcode-back" href="../../modules.html#mma_wrapper.organizational_specification_logic.goal_logic.register_pattern_rule">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">register_pattern_rule</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">trajectory_pattern_str</span><span class="p">:</span> <span class="n">trajectory_pattern_str</span><span class="p">,</span> <span class="n">relative_reward_reshape</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Register a pattern-based trajectory (TP) rule to the current TP rule register.</span>
+<span class="sd">        A TP rule is triggered when an agent&#39;s trajectory do match its &#39;trajectory_pattern_str&#39; resulting in a float reward.</span>
+<span class="sd">        Args:</span>
+<span class="sd">            trajectory_pattern_str: the TP to register into forming the first condition of the TP rule</span>
+<span class="sd">            relative_reward_reshape: the relative reward reshape value (supposedly between -1 and 1)</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">trajectory_pattern_str</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">trajectory_pattern_str</span> <span class="o">=</span> <span class="s2">&quot;any&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pattern_rules</span><span class="p">[</span><span class="n">trajectory_pattern_str</span><span class="p">]</span> <span class="o">=</span> <span class="n">relative_reward_reshape</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+<div class="viewcode-block" id="goal_logic.register_pattern_rules"><a class="viewcode-back" href="../../modules.html#mma_wrapper.organizational_specification_logic.goal_logic.register_pattern_rules">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">register_pattern_rules</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rules</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">trajectory_pattern_str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Register a list of TP rules to the current TP rule register</span>
+<span class="sd">        Args:</span>
+<span class="sd">            rules: The TP rules to be registered as a list of (trajectory pattern, float) couples</span>
+<span class="sd">        Return</span>
+<span class="sd">            None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">trajectory_pattern_str</span><span class="p">,</span> <span class="n">rrr</span> <span class="ow">in</span> <span class="n">rules</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">register_pattern_rule</span><span class="p">(</span><span class="n">trajectory_pattern_str</span><span class="p">,</span> <span class="n">rrr</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+<div class="viewcode-block" id="goal_logic.registrer_script_rule"><a class="viewcode-back" href="../../modules.html#mma_wrapper.organizational_specification_logic.goal_logic.registrer_script_rule">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">registrer_script_rule</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">function</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">trajectory</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">label_manager</span><span class="p">],</span> <span class="nb">float</span><span class="p">],</span> <span class="n">save_source</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Register a script-based rule.</span>
+<span class="sd">        A script-based rule is a function that outputs a relative reward reshape value (supposedely between -1 and 1) from a raw trajectory.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            function: the callable function to be added in the register</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">script_rules</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">function</span><span class="p">,</span> <span class="n">save_source</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+<div class="viewcode-block" id="goal_logic.registrer_script_rules"><a class="viewcode-back" href="../../modules.html#mma_wrapper.organizational_specification_logic.goal_logic.registrer_script_rules">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">registrer_script_rules</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">functions</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="n">trajectory</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">label_manager</span><span class="p">],</span> <span class="nb">float</span><span class="p">]]):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Register a list of script-based rules</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            functions: the list of script-based rules to be added in the register</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">script_rules</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">functions</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+<div class="viewcode-block" id="goal_logic.next_reward"><a class="viewcode-back" href="../../modules.html#mma_wrapper.organizational_specification_logic.goal_logic.next_reward">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">next_reward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">trajectory</span><span class="p">:</span> <span class="n">trajectory</span><span class="p">,</span> <span class="n">agent_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute the next reward bonus/malus as the product of the &#39;relative_reward_reshape&#39; (or &#39;rrr&#39; strictly comprised between -1 and 1) and the &#39;reward_reshape_standard&#39; (or &#39;rss&#39; as a positive real number).</span>
+
+<span class="sd">        This bonus/malus is added to the &quot;vanilla&quot; reward once an agent has applied an action (after &#39;env.step&#39; but before &#39;return obs, rew, done, info&#39;) to guide it into finding its own way to reach a specific subsequence characterizing a goal.</span>
+
+<span class="sd">        This reward bonus/malus is computed from the &#39;rrr&#39; obtained from goal rules (TP and script rules)</span>
+
+<span class="sd">        The &#39;rrr&#39; mechanism can be overviewed as such:</span>
+<span class="sd">            - If there are no goal rules that is triggered, then the agent receives a null &#39;rrr&#39;, hence a 0 bonus/malus.</span>
+<span class="sd">            - Else if some goal rules are triggered, the final &#39;rrr&#39; is the sum of all those applied ones&#39; results</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            trajectory: an agent&#39;s trajectory (containing raw observation and action objects)</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            float the bonus/malus to add in reward to entice the agent&#39;s into adopting the role&#39;s expected behavior</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">rrr</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="c1"># dealing with pattern rules</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pattern_rules</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">patternified_trajectory_str</span> <span class="o">=</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                <span class="p">[</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">_obs</span><span class="si">}</span><span class="s1">,</span><span class="si">{</span><span class="n">_act</span><span class="si">}</span><span class="s1">&#39;</span> <span class="k">for</span> <span class="n">_obs</span><span class="p">,</span> <span class="n">_act</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">label_manager</span><span class="o">.</span><span class="n">label_trajectory</span><span class="p">(</span><span class="n">trajectory</span><span class="p">)])</span>
+            <span class="k">for</span> <span class="n">_pattern</span><span class="p">,</span> <span class="n">_rrr</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pattern_rules</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">trajectory_pattern</span><span class="p">(</span><span class="n">_pattern</span><span class="p">)</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">patternified_trajectory_str</span><span class="p">):</span>
+                    <span class="n">rrr</span> <span class="o">+=</span> <span class="n">_rrr</span>
+
+        <span class="c1"># dealing with script rules</span>
+        <span class="k">for</span> <span class="n">_script_rule</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">script_rules</span><span class="p">:</span>
+            <span class="n">rrr</span> <span class="o">+=</span> <span class="n">_script_rule</span><span class="p">[</span><span class="mi">0</span><span class="p">](</span><span class="n">trajectory</span><span class="p">,</span> <span class="n">agent_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">label_manager</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">rrr</span></div>
+
+<div class="viewcode-block" id="goal_logic.to_dict"><a class="viewcode-back" href="../../modules.html#mma_wrapper.organizational_specification_logic.goal_logic.to_dict">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;label_manager&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">label_manager</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(),</span>
+            <span class="s2">&quot;pattern_rules&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">pattern_rules</span><span class="p">,</span>
+            <span class="s2">&quot;reward_reshape_standard&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">reward_reshape_standard</span><span class="p">,</span>
+            <span class="s2">&quot;script_rules&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">dump_function</span><span class="p">(</span><span class="n">_function</span><span class="p">,</span> <span class="n">_save_source</span><span class="p">,</span> <span class="n">_function_name</span><span class="p">,</span> <span class="n">_function_source</span><span class="p">)</span> <span class="k">for</span> <span class="n">_function</span><span class="p">,</span> <span class="n">_save_source</span><span class="p">,</span> <span class="n">_function_name</span><span class="p">,</span> <span class="n">_function_source</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">script_rules</span><span class="p">]</span>
+        <span class="p">}</span></div>
+
+<div class="viewcode-block" id="goal_logic.from_dict"><a class="viewcode-back" href="../../modules.html#mma_wrapper.organizational_specification_logic.goal_logic.from_dict">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_dict</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;role_logic&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">goal_logic</span><span class="p">(</span><span class="n">pattern_rules</span><span class="o">=</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;pattern_rules&quot;</span><span class="p">],</span>
+                          <span class="n">function_rules</span><span class="o">=</span><span class="p">[</span><span class="n">load_function</span><span class="p">(</span><span class="n">_function_data</span><span class="p">)</span>
+                                          <span class="k">for</span> <span class="n">_function_data</span> <span class="ow">in</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;script_rules&quot;</span><span class="p">]],</span>
+                          <span class="n">label_manager</span><span class="o">=</span><span class="n">label_manager</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span>
+                              <span class="n">d</span><span class="p">[</span><span class="s2">&quot;label_manager&quot;</span><span class="p">]),</span>
+                          <span class="n">reward_reshape_standard</span><span class="o">=</span><span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;reward_reshape_standard&quot;</span><span class="p">,</span> <span class="mi">100</span><span class="p">))</span></div></div>
+
+
+<div class="viewcode-block" id="role_factory"><a class="viewcode-back" href="../../modules.html#mma_wrapper.organizational_specification_logic.role_factory">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">role_factory</span><span class="p">:</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pattern_rules</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">trajectory_pattern_str</span><span class="p">,</span>
+                                                 <span class="n">label</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">label</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">function_rules</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span>
+                     <span class="n">trajectory</span><span class="p">,</span> <span class="n">observation</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="s1">&#39;label_manager&#39;</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">action</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">label_manager</span><span class="p">:</span> <span class="n">label_manager</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">reward_reshape_standard</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">100</span><span class="p">):</span>
+        <span class="n">manager</span> <span class="o">=</span> <span class="n">label_manager</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pattern_rules</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">trajectory_pattern_str</span><span class="p">,</span>
+                                       <span class="n">label</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">label</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">{}</span> <span class="k">if</span> <span class="n">pattern_rules</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">pattern_rules</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">script_rules</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span>
+            <span class="n">trajectory</span><span class="p">,</span> <span class="n">observation</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="s2">&quot;label_manager&quot;</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">action</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]]]</span> <span class="o">=</span> <span class="p">[]</span> <span class="k">if</span> <span class="n">function_rules</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">function_rules</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">label_manager</span><span class="p">:</span> <span class="s1">&#39;label_manager&#39;</span> <span class="o">=</span> <span class="n">manager</span> <span class="k">if</span> <span class="n">manager</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">mma_wrapper</span><span class="o">.</span><span class="n">label_manager</span><span class="o">.</span><span class="n">label_manager</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reward_reshape_standard</span> <span class="o">=</span> <span class="n">reward_reshape_standard</span>
+
+<div class="viewcode-block" id="role_factory.create"><a class="viewcode-back" href="../../modules.html#mma_wrapper.organizational_specification_logic.role_factory.create">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">create</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">role_logic</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">role_logic</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pattern_rules</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">script_rules</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">label_manager</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">reward_reshape_standard</span><span class="p">))</span></div></div>
+
+
+<div class="viewcode-block" id="goal_factory"><a class="viewcode-back" href="../../modules.html#mma_wrapper.organizational_specification_logic.goal_factory">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">goal_factory</span><span class="p">:</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">pattern_rules</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">trajectory_pattern_str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">function_rules</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="n">trajectory</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">label_manager</span><span class="p">],</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">label_manager</span><span class="p">:</span> <span class="n">label_manager</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">reward_reshape_standard</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">100</span><span class="p">):</span>
+        <span class="n">manager</span> <span class="o">=</span> <span class="n">label_manager</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pattern_rules</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">trajectory_pattern_str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="p">}</span> <span class="k">if</span> <span class="n">pattern_rules</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">pattern_rules</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">script_rules</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="n">trajectory</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="s1">&#39;label_manager&#39;</span><span class="p">],</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">]</span> <span class="k">if</span> <span class="n">function_rules</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">function_rules</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">label_manager</span><span class="p">:</span> <span class="s1">&#39;label_manager&#39;</span> <span class="o">=</span> <span class="n">manager</span> <span class="k">if</span> <span class="n">manager</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">mma_wrapper</span><span class="o">.</span><span class="n">label_manager</span><span class="o">.</span><span class="n">label_manager</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reward_reshape_standard</span> <span class="o">=</span> <span class="n">reward_reshape_standard</span>
+
+<div class="viewcode-block" id="goal_factory.create"><a class="viewcode-back" href="../../modules.html#mma_wrapper.organizational_specification_logic.goal_factory.create">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">create</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">goal_logic</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">goal_logic</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pattern_rules</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">script_rules</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">label_manager</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">reward_reshape_standard</span><span class="p">))</span></div></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">MOISE+MARL</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">Modules</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2025, Julien Soulé et al..
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.1.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

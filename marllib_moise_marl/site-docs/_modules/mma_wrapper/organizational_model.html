@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>mma_wrapper.organizational_model &#8212; MOISE+MARL 0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=6625fa76" />
+    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css?v=039e1c02" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js?v=e031e9a9"></script>
+    <script src="../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../_static/sphinx_highlight.js?v=4825356b"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for mma_wrapper.organizational_model</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">dataclasses</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">enum</span><span class="w"> </span><span class="kn">import</span> <span class="n">Enum</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mma_wrapper.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">cardinality</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mma_wrapper.organizational_specification_logic</span><span class="w"> </span><span class="kn">import</span> <span class="n">role_logic</span><span class="p">,</span> <span class="n">goal_logic</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mma_wrapper.label_manager</span><span class="w"> </span><span class="kn">import</span> <span class="n">label_manager</span>
+
+
+<div class="viewcode-block" id="os_encoder"><a class="viewcode-back" href="../../modules.html#mma_wrapper.organizational_model.os_encoder">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">os_encoder</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">JSONEncoder</span><span class="p">):</span>
+<div class="viewcode-block" id="os_encoder.default"><a class="viewcode-back" href="../../modules.html#mma_wrapper.organizational_model.os_encoder.default">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">default</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">o</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">o</span><span class="p">,</span> <span class="n">sub_plan</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">o</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">o</span><span class="p">,</span> <span class="n">role_logic</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">o</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">o</span><span class="p">,</span> <span class="n">goal_logic</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">o</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">is_dataclass</span><span class="p">(</span><span class="n">o</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">asdict</span><span class="p">(</span><span class="n">o</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="n">o</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="organizational_specification"><a class="viewcode-back" href="../../modules.html#mma_wrapper.organizational_model.organizational_specification">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">organizational_specification</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The basic class</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="role"><a class="viewcode-back" href="../../modules.html#mma_wrapper.organizational_model.role">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">role</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">organizational_specification</span><span class="p">):</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="group_tag"><a class="viewcode-back" href="../../modules.html#mma_wrapper.organizational_model.group_tag">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">group_tag</span><span class="p">(</span><span class="nb">str</span><span class="p">):</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="link_type"><a class="viewcode-back" href="../../modules.html#mma_wrapper.organizational_model.link_type">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">link_type</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">Enum</span><span class="p">):</span>
+    <span class="n">ACQ</span> <span class="o">=</span> <span class="s1">&#39;ACQ&#39;</span>
+    <span class="n">COM</span> <span class="o">=</span> <span class="s1">&#39;COM&#39;</span>
+    <span class="n">AUT</span> <span class="o">=</span> <span class="s1">&#39;AUT&#39;</span></div>
+
+
+<div class="viewcode-block" id="link"><a class="viewcode-back" href="../../modules.html#mma_wrapper.organizational_model.link">[docs]</a><span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">link</span><span class="p">(</span><span class="n">organizational_specification</span><span class="p">):</span>
+    <span class="n">source</span><span class="p">:</span> <span class="n">role</span>
+    <span class="n">destination</span><span class="p">:</span> <span class="n">role</span>
+    <span class="nb">type</span><span class="p">:</span> <span class="n">link_type</span>
+
+<div class="viewcode-block" id="link.from_dict"><a class="viewcode-back" href="../../modules.html#mma_wrapper.organizational_model.link.from_dict">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_dict</span><span class="p">(</span><span class="n">d</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s1">&#39;link&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">d</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">return</span> <span class="n">link</span><span class="p">(</span>
+            <span class="n">source</span><span class="o">=</span><span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;source&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+            <span class="n">destination</span><span class="o">=</span><span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;destination&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+            <span class="nb">type</span><span class="o">=</span><span class="n">link_type</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;type&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
+        <span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="compatibility"><a class="viewcode-back" href="../../modules.html#mma_wrapper.organizational_model.compatibility">[docs]</a><span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">compatibility</span><span class="p">(</span><span class="n">organizational_specification</span><span class="p">):</span>
+    <span class="n">source</span><span class="p">:</span> <span class="n">role</span>
+    <span class="n">destination</span><span class="p">:</span> <span class="n">role</span>
+
+<div class="viewcode-block" id="compatibility.from_dict"><a class="viewcode-back" href="../../modules.html#mma_wrapper.organizational_model.compatibility.from_dict">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_dict</span><span class="p">(</span><span class="n">d</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s1">&#39;compatibility&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">d</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">return</span> <span class="n">compatibility</span><span class="p">(</span>
+            <span class="n">source</span><span class="o">=</span><span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;source&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+            <span class="n">destination</span><span class="o">=</span><span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;destination&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="group_specifications"><a class="viewcode-back" href="../../modules.html#mma_wrapper.organizational_model.group_specifications">[docs]</a><span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">group_specifications</span><span class="p">(</span><span class="n">organizational_specification</span><span class="p">):</span>
+    <span class="n">roles</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">role</span><span class="p">]</span>
+    <span class="n">sub_groups</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">group_tag</span><span class="p">,</span> <span class="s1">&#39;group_specifications&#39;</span><span class="p">]</span>
+    <span class="n">intra_links</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">link</span><span class="p">]</span>
+    <span class="n">inter_links</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">link</span><span class="p">]</span>
+    <span class="n">intra_compatibilities</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">compatibility</span><span class="p">]</span>
+    <span class="n">inter_compatibilities</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">compatibility</span><span class="p">]</span>
+    <span class="c1"># by default: cardinality(0, INFINITE)</span>
+    <span class="n">role_cardinalities</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">role</span><span class="p">,</span> <span class="n">cardinality</span><span class="p">]</span>
+    <span class="c1"># by default: cardinality(0, INFINITE)</span>
+    <span class="n">sub_group_cardinalities</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">group_tag</span><span class="p">,</span> <span class="n">cardinality</span><span class="p">]</span>
+
+<div class="viewcode-block" id="group_specifications.from_dict"><a class="viewcode-back" href="../../modules.html#mma_wrapper.organizational_model.group_specifications.from_dict">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_dict</span><span class="p">(</span><span class="n">d</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s1">&#39;group_specifications&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">d</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">return</span> <span class="n">group_specifications</span><span class="p">(</span>
+            <span class="n">roles</span><span class="o">=</span><span class="p">[</span><span class="n">role</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;roles&#39;</span><span class="p">,</span> <span class="p">[])],</span>
+            <span class="n">sub_groups</span><span class="o">=</span><span class="p">{</span><span class="n">group_tag</span><span class="p">(</span><span class="n">k</span><span class="p">):</span> <span class="n">group_specifications</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+                        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;sub_groups&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">()},</span>
+            <span class="n">intra_links</span><span class="o">=</span><span class="p">[</span><span class="n">link</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">l</span><span class="p">)</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;intra_links&#39;</span><span class="p">,</span> <span class="p">[])],</span>
+            <span class="n">inter_links</span><span class="o">=</span><span class="p">[</span><span class="n">link</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">l</span><span class="p">)</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;inter_links&#39;</span><span class="p">,</span> <span class="p">[])],</span>
+            <span class="n">intra_compatibilities</span><span class="o">=</span><span class="p">[</span><span class="n">compatibility</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span>
+                <span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;intra_compatibilities&#39;</span><span class="p">,</span> <span class="p">[])],</span>
+            <span class="n">inter_compatibilities</span><span class="o">=</span><span class="p">[</span><span class="n">compatibility</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span>
+                <span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;inter_compatibilities&#39;</span><span class="p">,</span> <span class="p">[])],</span>
+            <span class="n">role_cardinalities</span><span class="o">=</span><span class="p">{</span><span class="n">role</span><span class="p">(</span><span class="n">k</span><span class="p">):</span> <span class="n">cardinality</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+                                <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;role_cardinalities&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">()},</span>
+            <span class="n">sub_group_cardinalities</span><span class="o">=</span><span class="p">{</span><span class="n">group_tag</span><span class="p">(</span><span class="n">k</span><span class="p">):</span> <span class="n">cardinality</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span>
+                <span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;sub_group_cardinalities&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        <span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="structural_specifications"><a class="viewcode-back" href="../../modules.html#mma_wrapper.organizational_model.structural_specifications">[docs]</a><span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">structural_specifications</span><span class="p">(</span><span class="n">organizational_specification</span><span class="p">):</span>
+    <span class="n">roles</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">role</span><span class="p">,</span> <span class="n">role_logic</span><span class="p">]</span>
+    <span class="n">role_inheritance_relations</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">role</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">role</span><span class="p">]]</span>
+    <span class="n">root_groups</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">group_tag</span><span class="p">,</span> <span class="n">group_specifications</span><span class="p">]</span>
+
+<div class="viewcode-block" id="structural_specifications.from_dict"><a class="viewcode-back" href="../../modules.html#mma_wrapper.organizational_model.structural_specifications.from_dict">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_dict</span><span class="p">(</span><span class="n">d</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s1">&#39;structural_specifications&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">d</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">return</span> <span class="n">structural_specifications</span><span class="p">(</span>
+            <span class="n">roles</span><span class="o">=</span><span class="p">{</span><span class="n">role</span><span class="p">(</span><span class="n">r</span><span class="p">):</span> <span class="n">role_logic</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+                   <span class="k">for</span> <span class="n">r</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;roles&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">()},</span>
+            <span class="n">role_inheritance_relations</span><span class="o">=</span><span class="p">{</span><span class="n">role</span><span class="p">(</span>
+                <span class="n">k</span><span class="p">):</span> <span class="p">[</span><span class="n">role</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">v</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;role_inheritance_relations&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">()},</span>
+            <span class="n">root_groups</span><span class="o">=</span><span class="p">{</span><span class="n">group_tag</span><span class="p">(</span><span class="n">k</span><span class="p">):</span> <span class="n">group_specifications</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+                         <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;root_groups&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        <span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="goal"><a class="viewcode-back" href="../../modules.html#mma_wrapper.organizational_model.goal">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">goal</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">organizational_specification</span><span class="p">):</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="mission"><a class="viewcode-back" href="../../modules.html#mma_wrapper.organizational_model.mission">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">mission</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">organizational_specification</span><span class="p">):</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="plan_operator"><a class="viewcode-back" href="../../modules.html#mma_wrapper.organizational_model.plan_operator">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">plan_operator</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">Enum</span><span class="p">):</span>
+    <span class="n">SEQUENCE</span> <span class="o">=</span> <span class="s1">&#39;SEQUENCE&#39;</span>
+    <span class="n">CHOICE</span> <span class="o">=</span> <span class="s1">&#39;CHOICE&#39;</span>
+    <span class="n">PARALLEL</span> <span class="o">=</span> <span class="s1">&#39;PARALLEL&#39;</span></div>
+
+
+<div class="viewcode-block" id="sub_plan"><a class="viewcode-back" href="../../modules.html#mma_wrapper.organizational_model.sub_plan">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">sub_plan</span><span class="p">(</span><span class="n">organizational_specification</span><span class="p">):</span>
+    <span class="n">operator</span><span class="p">:</span> <span class="n">plan_operator</span>
+    <span class="n">sub_goals</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="s1">&#39;plan&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">operator</span><span class="p">:</span> <span class="n">plan_operator</span><span class="p">,</span> <span class="n">sub_goals</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="s1">&#39;goal&#39;</span><span class="p">,</span> <span class="s1">&#39;plan&#39;</span><span class="p">]]):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">operator</span> <span class="o">=</span> <span class="n">operator</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sub_goals</span> <span class="o">=</span> <span class="p">[</span><span class="n">plan</span><span class="p">(</span><span class="n">sub_goal</span><span class="p">)</span> <span class="k">if</span> <span class="nb">type</span><span class="p">(</span>
+            <span class="n">sub_goal</span><span class="p">)</span> <span class="o">==</span> <span class="nb">str</span> <span class="k">else</span> <span class="n">sub_goal</span> <span class="k">for</span> <span class="n">sub_goal</span> <span class="ow">in</span> <span class="n">sub_goals</span><span class="p">]</span>
+
+<div class="viewcode-block" id="sub_plan.to_dict"><a class="viewcode-back" href="../../modules.html#mma_wrapper.organizational_model.sub_plan.to_dict">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">&#39;operator&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">operator</span><span class="p">,</span>
+            <span class="s1">&#39;sub_goals&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">sub_goal</span><span class="o">.</span><span class="n">goal</span> <span class="k">if</span> <span class="p">(</span><span class="n">sub_goal</span><span class="o">.</span><span class="n">sub_plan</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">sub_goal</span><span class="o">.</span><span class="n">probability</span> <span class="o">==</span> <span class="mf">1.0</span><span class="p">)</span> <span class="k">else</span> <span class="n">sub_goal</span> <span class="k">for</span> <span class="n">sub_goal</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sub_goals</span><span class="p">]</span>
+        <span class="p">}</span></div>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">hash</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">())</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">operator</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">operator</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">sub_goals</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">sub_goals</span></div>
+
+
+<div class="viewcode-block" id="plan"><a class="viewcode-back" href="../../modules.html#mma_wrapper.organizational_model.plan">[docs]</a><span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">plan</span><span class="p">(</span><span class="n">organizational_specification</span><span class="p">):</span>
+    <span class="n">goal</span><span class="p">:</span> <span class="n">goal</span>
+    <span class="n">sub_plan</span><span class="p">:</span> <span class="s1">&#39;sub_plan&#39;</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">probability</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span>
+
+<div class="viewcode-block" id="plan.from_dict"><a class="viewcode-back" href="../../modules.html#mma_wrapper.organizational_model.plan.from_dict">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_dict</span><span class="p">(</span><span class="n">d</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s1">&#39;plan&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">d</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="o">==</span> <span class="nb">str</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">plan</span><span class="p">(</span><span class="n">goal</span><span class="o">=</span><span class="n">d</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">plan</span><span class="p">(</span>
+                <span class="n">goal</span><span class="o">=</span><span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;goal&#39;</span><span class="p">,</span> <span class="p">{}),</span>
+                <span class="n">sub_plan</span><span class="o">=</span><span class="n">sub_plan</span><span class="p">(</span><span class="n">operator</span><span class="o">=</span><span class="kc">None</span> <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;sub_plan&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;operator&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">plan_operator</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;sub_plan&#39;</span><span class="p">][</span><span class="s1">&#39;operator&#39;</span><span class="p">]),</span>
+                                  <span class="n">sub_goals</span><span class="o">=</span><span class="p">[</span><span class="n">plan</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">sub_goal</span><span class="p">)</span> <span class="k">for</span> <span class="n">sub_goal</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;sub_plan&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;sub_goals&#39;</span><span class="p">,</span> <span class="p">[])]),</span>
+                <span class="n">probability</span><span class="o">=</span><span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;probability&#39;</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">))</span></div></div>
+
+
+<div class="viewcode-block" id="social_scheme"><a class="viewcode-back" href="../../modules.html#mma_wrapper.organizational_model.social_scheme">[docs]</a><span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">social_scheme</span><span class="p">(</span><span class="n">organizational_specification</span><span class="p">):</span>
+    <span class="n">goals_structure</span><span class="p">:</span> <span class="n">plan</span>
+    <span class="n">mission_to_goals</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">mission</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">goal</span><span class="p">]]</span>
+    <span class="c1"># by default: cardinality(1, INFINITE)</span>
+    <span class="n">mission_to_agent_cardinality</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">mission</span><span class="p">,</span> <span class="n">cardinality</span><span class="p">]</span>
+
+<div class="viewcode-block" id="social_scheme.from_dict"><a class="viewcode-back" href="../../modules.html#mma_wrapper.organizational_model.social_scheme.from_dict">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_dict</span><span class="p">(</span><span class="n">d</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s1">&#39;social_scheme&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">d</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">return</span> <span class="n">social_scheme</span><span class="p">(</span>
+            <span class="n">goals_structure</span><span class="o">=</span><span class="p">{}</span> <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                <span class="s1">&#39;goals_structure&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">plan</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;goals_structure&#39;</span><span class="p">]),</span>
+            <span class="n">mission_to_goals</span><span class="o">=</span><span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="p">[</span><span class="n">goal</span><span class="p">(</span><span class="n">g</span><span class="p">)</span> <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">v</span><span class="p">]</span>
+                              <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;mission_to_goals&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">()},</span>
+            <span class="n">mission_to_agent_cardinality</span><span class="o">=</span><span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">cardinality</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span>
+                <span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;mission_to_agent_cardinality&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        <span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="social_scheme_tag"><a class="viewcode-back" href="../../modules.html#mma_wrapper.organizational_model.social_scheme_tag">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">social_scheme_tag</span><span class="p">(</span><span class="nb">str</span><span class="p">):</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="mission_preference"><a class="viewcode-back" href="../../modules.html#mma_wrapper.organizational_model.mission_preference">[docs]</a><span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">mission_preference</span><span class="p">(</span><span class="n">organizational_specification</span><span class="p">):</span>
+    <span class="n">prefer</span><span class="p">:</span> <span class="n">mission</span>
+    <span class="n">over</span><span class="p">:</span> <span class="n">mission</span>
+
+<div class="viewcode-block" id="mission_preference.from_dict"><a class="viewcode-back" href="../../modules.html#mma_wrapper.organizational_model.mission_preference.from_dict">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_dict</span><span class="p">(</span><span class="n">d</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s1">&#39;mission_preference&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">d</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{}</span>
+        <span class="k">return</span> <span class="n">mission_preference</span><span class="p">(</span>
+            <span class="n">prefer</span><span class="o">=</span><span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;prefer&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+            <span class="n">over</span><span class="o">=</span><span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;over&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="functional_specifications"><a class="viewcode-back" href="../../modules.html#mma_wrapper.organizational_model.functional_specifications">[docs]</a><span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">functional_specifications</span><span class="p">(</span><span class="n">organizational_specification</span><span class="p">):</span>
+    <span class="n">goals</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">goal</span><span class="p">,</span> <span class="n">goal_logic</span><span class="p">]</span>
+    <span class="n">social_scheme</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">social_scheme_tag</span><span class="p">,</span> <span class="n">social_scheme</span><span class="p">]</span>
+    <span class="n">mission_preferences</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">mission_preference</span><span class="p">]</span>
+
+<div class="viewcode-block" id="functional_specifications.from_dict"><a class="viewcode-back" href="../../modules.html#mma_wrapper.organizational_model.functional_specifications.from_dict">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_dict</span><span class="p">(</span><span class="n">d</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s1">&#39;functional_specifications&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">d</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">return</span> <span class="n">functional_specifications</span><span class="p">(</span>
+            <span class="n">goals</span><span class="o">=</span><span class="p">{</span><span class="n">goal</span><span class="p">:</span> <span class="n">goal_logic</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">goal_lgc</span><span class="p">)</span> <span class="k">if</span> <span class="n">goal_lgc</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">goal_logic</span><span class="p">()</span>
+                   <span class="k">for</span> <span class="n">goal</span><span class="p">,</span> <span class="n">goal_lgc</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;goals&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">()},</span>
+            <span class="n">social_scheme</span><span class="o">=</span><span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">social_scheme</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+                           <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;social_scheme&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">()},</span>
+            <span class="n">mission_preferences</span><span class="o">=</span><span class="p">[</span><span class="n">mission_preference</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span>
+                <span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;mission_preferences&#39;</span><span class="p">,</span> <span class="p">[])]</span>
+        <span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="time_constraint_type"><a class="viewcode-back" href="../../modules.html#mma_wrapper.organizational_model.time_constraint_type">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">time_constraint_type</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">Enum</span><span class="p">):</span>
+    <span class="n">ANY</span> <span class="o">=</span> <span class="s1">&#39;ANY&#39;</span></div>
+
+
+<div class="viewcode-block" id="deontic_specification"><a class="viewcode-back" href="../../modules.html#mma_wrapper.organizational_model.deontic_specification">[docs]</a><span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">deontic_specification</span><span class="p">(</span><span class="n">organizational_specification</span><span class="p">):</span>
+    <span class="n">role</span><span class="p">:</span> <span class="n">role</span>
+    <span class="n">agents</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+    <span class="n">missions</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">mission</span><span class="p">]</span>
+    <span class="n">time_constraint</span><span class="p">:</span> <span class="n">time_constraint_type</span> <span class="o">=</span> <span class="n">time_constraint_type</span><span class="o">.</span><span class="n">ANY</span>
+
+<div class="viewcode-block" id="deontic_specification.from_dict"><a class="viewcode-back" href="../../modules.html#mma_wrapper.organizational_model.deontic_specification.from_dict">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_dict</span><span class="p">(</span><span class="n">d</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s1">&#39;deontic_specification&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">d</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">return</span> <span class="n">deontic_specification</span><span class="p">(</span>
+            <span class="n">role</span><span class="o">=</span><span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;role&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+            <span class="n">agents</span><span class="o">=</span><span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;agents&#39;</span><span class="p">,</span> <span class="p">[]),</span>
+            <span class="n">missions</span><span class="o">=</span><span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;missions&#39;</span><span class="p">,</span> <span class="p">[]),</span>
+            <span class="n">time_constraint</span><span class="o">=</span><span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;time_constraint&#39;</span><span class="p">,</span> <span class="n">time_constraint_type</span><span class="o">.</span><span class="n">ANY</span><span class="p">)</span>
+        <span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="deontic_specifications"><a class="viewcode-back" href="../../modules.html#mma_wrapper.organizational_model.deontic_specifications">[docs]</a><span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">deontic_specifications</span><span class="p">(</span><span class="n">organizational_specification</span><span class="p">):</span>
+    <span class="n">permissions</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">deontic_specification</span><span class="p">]</span>
+    <span class="n">obligations</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">deontic_specification</span><span class="p">]</span>
+
+<div class="viewcode-block" id="deontic_specifications.from_dict"><a class="viewcode-back" href="../../modules.html#mma_wrapper.organizational_model.deontic_specifications.from_dict">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_dict</span><span class="p">(</span><span class="n">d</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s1">&#39;deontic_specifications&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">d</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">return</span> <span class="n">deontic_specifications</span><span class="p">(</span>
+            <span class="n">permissions</span><span class="o">=</span><span class="p">[</span><span class="n">deontic_specification</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span>
+                <span class="n">permission</span><span class="p">)</span> <span class="k">for</span> <span class="n">permission</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;permissions&#39;</span><span class="p">,</span> <span class="p">[])],</span>
+            <span class="n">obligations</span><span class="o">=</span><span class="p">[</span><span class="n">deontic_specification</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span>
+                <span class="n">obligation</span><span class="p">)</span> <span class="k">for</span> <span class="n">obligation</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;obligations&#39;</span><span class="p">,</span> <span class="p">[])]</span>
+        <span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="organizational_model"><a class="viewcode-back" href="../../modules.html#mma_wrapper.organizational_model.organizational_model">[docs]</a><span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">organizational_model</span><span class="p">:</span>
+    <span class="n">structural_specifications</span><span class="p">:</span> <span class="s1">&#39;structural_specifications&#39;</span>
+    <span class="n">functional_specifications</span><span class="p">:</span> <span class="s1">&#39;functional_specifications&#39;</span>
+    <span class="n">deontic_specifications</span><span class="p">:</span> <span class="s1">&#39;deontic_specifications&#39;</span>
+
+<div class="viewcode-block" id="organizational_model.from_dict"><a class="viewcode-back" href="../../modules.html#mma_wrapper.organizational_model.organizational_model.from_dict">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_dict</span><span class="p">(</span><span class="n">d</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s1">&#39;organizational_model&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">organizational_model</span><span class="p">(</span>
+            <span class="n">structural_specifications</span><span class="o">=</span><span class="n">structural_specifications</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span>
+                <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;structural_specifications&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)),</span>
+            <span class="n">functional_specifications</span><span class="o">=</span><span class="n">functional_specifications</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span>
+                <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;functional_specifications&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)),</span>
+            <span class="n">deontic_specifications</span><span class="o">=</span><span class="n">deontic_specifications</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span>
+                <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;deontic_specifications&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
+        <span class="p">)</span></div>
+
+<div class="viewcode-block" id="organizational_model.to_dict"><a class="viewcode-back" href="../../modules.html#mma_wrapper.organizational_model.organizational_model.to_dict">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="bp">cls</span><span class="o">=</span><span class="n">os_encoder</span><span class="p">))</span></div></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">MOISE+MARL</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">Modules</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2025, Julien Soulé et al..
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.1.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

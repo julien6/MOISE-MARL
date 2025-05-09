@@ -1,0 +1,22 @@
+Modules
+=======
+
+.. automodule:: mma_wrapper.label_manager
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+.. automodule:: mma_wrapper.organizational_model
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+.. automodule:: mma_wrapper.organizational_specification_logic
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+.. automodule:: mma_wrapper.utils
+    :members:
+    :undoc-members:
+    :show-inheritance:
