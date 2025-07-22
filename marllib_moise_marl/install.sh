@@ -5,46 +5,23 @@ git config --global http.lowSpeedLimit 0
 git config --global http.lowSpeedTime 999999
 git config --global core.compression 0
 
-# Check if 'conda' command exists
-if [ -d "$HOME/miniconda" ] || [ -d "$HOME/miniconda3" ] ; then
-  echo "Miniconda is already installed on your system."
+# -----------------------------------
+# Vérification Python 3.8
+# -----------------------------------
+if command -v python3.8 >/dev/null 2>&1; then
+    echo "✅ Python 3.8 was found."
 else
-  echo "Miniconda is not installed. Installing now..."
-
-  # Download the Miniconda installation script
-  curl -o Miniconda.sh https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
-  
-  # Make the script executable
-  chmod +x Miniconda.sh
-  
-  # Install Miniconda silently (-b) to the default path ($HOME/miniconda)
-  ./Miniconda.sh -b -p "$HOME/miniconda"
-  
-  # Remove the installer to clean up
-  rm -f Miniconda.sh
-  
-  # Update the PATH to include Miniconda
-  export PATH="$HOME/miniconda/bin:$PATH"
-  echo 'export PATH="$HOME/miniconda/bin:$PATH"' >> ~/.bashrc
-
-  source ~/miniconda3/etc/profile.d/conda.sh
-  source ~/miniconda/etc/profile.d/conda.sh
-
-  # Verify if conda was successfully installed
-  if command -v conda >/dev/null 2>&1; then
-    echo "Miniconda was successfully installed."
-  else
-    echo "Miniconda installation failed. Please check the logs above."
+    echo "❌ Python 3.8 is not installed. Please install it (ex: sudo apt install python3.8 python3.8-venv)."
     exit 1
-  fi
-
 fi
 
-conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/main
-conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/r
+echo "🛠️  Creating virtual Python 3.8 environment..."
+python3.8 -m venv ~/mma
 
-conda create -n mma python=3.8 -y
-conda activate mma
+echo "Activation de l'environnement virtuel..."
+source ~/mma/bin/activate
+
+pip install --upgrade pip setuptools
 
 git clone https://github.com/julien6/PettingZoo.git
 
@@ -66,8 +43,6 @@ pip install "gym>=0.20.0,<0.22.0"
 pip install numpy==1.20.3
 # pip install pettingzoo==1.12.0
 pip install pyglet==1.5.11
-
-conda install -c conda-forge libstdcxx-ng -y
 
 cd marllib
 # add patch files to MARLlib
