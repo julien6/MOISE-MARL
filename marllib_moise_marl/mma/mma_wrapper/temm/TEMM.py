@@ -39,9 +39,9 @@ class TEMM:
                    distance_method_obs="euclidean",
                    distance_method_full="euclidean",
                    centroid_mode="mean",
-                   inclusion_radius=0.2,
-                   min_rule_weight=0.5,
-                   min_goal_weight=0.5):
+                   inclusion_radius=1.,
+                   min_rule_weight=0.,
+                   min_goal_weight=0.):
         """
         Run the full TEMM pipeline: from data loading to fit evaluation.
         """
@@ -63,23 +63,23 @@ class TEMM:
 
         print("3. Generating visualizations...")
         generate_actions_dendrogram(action_trajectories, save_path=os.path.join(
-            self.analysis_results_path, "figures", "actions_dendrogram.png"))
+            self.analysis_results_path, "figures", "actions_dendrogram.pdf"))
         generate_observations_dendrogram(observation_trajectories, save_path=os.path.join(
-            self.analysis_results_path, "figures", "observations_dendrogram.png"))
+            self.analysis_results_path, "figures", "observations_dendrogram.pdf"))
         generate_dendrogram(full_trajectories, save_path=os.path.join(
-            self.analysis_results_path, "figures", "full_dendrogram.png"))
+            self.analysis_results_path, "figures", "full_dendrogram.pdf"))
         visualize_action_pca(action_trajectories, save_path=os.path.join(
-            self.analysis_results_path, "figures", "action_pca.png"))
+            self.analysis_results_path, "figures", "action_pca.pdf"))
         visualize_observation_pca(observation_trajectories, save_path=os.path.join(
-            self.analysis_results_path, "figures", "observation_pca.png"))
+            self.analysis_results_path, "figures", "observation_pca.pdf"))
         visualize_transition_pca(full_trajectories, save_path=os.path.join(
-            self.analysis_results_path, "figures", "transition_pca.png"))
+            self.analysis_results_path, "figures", "transition_pca.pdf"))
         visualize_action_trajectory(action_trajectories, save_path=os.path.join(
-            self.analysis_results_path, "figures", "action_trajectory_pca.png"))
+            self.analysis_results_path, "figures", "action_trajectory_pca.pdf"))
         visualize_observation_trajectory(observation_trajectories, save_path=os.path.join(
-            self.analysis_results_path, "figures", "observation_trajectory_pca.png"))
+            self.analysis_results_path, "figures", "observation_trajectory_pca.pdf"))
         visualize_trajectory(full_trajectories, save_path=os.path.join(
-            self.analysis_results_path, "figures", "full_trajectory_pca.png"))
+            self.analysis_results_path, "figures", "full_trajectory_pca.pdf"))
 
         print("4. Computing centroids...")
         action_centroids = compute_action_centroids_per_cluster(
